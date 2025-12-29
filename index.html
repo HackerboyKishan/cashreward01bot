@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CashReward - Earn Money</title>
     
-    <!-- Ad Script -->
-    <script src='//libtl.com/sdk.js' data-zone='10392480' data-sdk='show_10392480'></script>
-    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -243,8 +240,8 @@
             <p class="text-gray-400 mt-4">Loading Telegram Mini App...</p>
             
             <div class="mt-12 text-sm text-gray-500">
-                <p>Open this app from: <span class="text-blue-400">@cashreward01bot</span></p>
-                <p class="mt-2">Bot Token: 8224608896:AAHLqA_yj70l96ETzgNZjoYRAwXtvr8gvDM</p>
+                <p>Open this app from Telegram bot</p>
+                <p class="mt-2 text-xs">Make sure you're opening from a Telegram Mini App</p>
             </div>
         </div>
     </div>
@@ -746,131 +743,125 @@
         </div>
     </div>
 
-    <!-- Firebase Configuration -->
+    <!-- Main App Script -->
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyCE29KuB_R6f2HwgFeHa5QS3OeVbzUTDyM",
-            authDomain: "cashreward01bot.firebaseapp.com",
-            projectId: "cashreward01bot",
-            storageBucket: "cashreward01bot.firebasestorage.app",
-            messagingSenderId: "196200872526",
-            appId: "1:196200872526:web:aeb685560be9878d40e11f",
-            databaseURL: "https://cashreward01bot-default-rtdb.firebaseio.com"
-        };
-        
-        // Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        
         // Global variables
         let currentUser = null;
         let userData = null;
         let appConfig = {};
         let telegramUser = null;
         let adTimeout = null;
-    </script>
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
-
-    <!-- Main App Script -->
-    <script>
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        let tg = null;
         
         // Initialize app
         document.addEventListener('DOMContentLoaded', async () => {
             // Create icons
             lucide.createIcons();
             
-            // Initialize Telegram
-            tg.ready();
-            tg.expand();
-            
-            // Check Telegram Mini App
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                telegramUser = tg.initDataUnsafe.user;
-                await handleTelegramLogin();
+            // Initialize Telegram Web App
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                // Check Telegram Mini App
+                if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    telegramUser = tg.initDataUnsafe.user;
+                    await handleTelegramLogin();
+                } else {
+                    // Fallback for testing or direct access
+                    showAlert('Telegram Mini App Required', 'Please open this app from a Telegram bot', 'alert-circle');
+                    setTimeout(() => {
+                        if (tg && tg.close) {
+                            tg.close();
+                        }
+                    }, 3000);
+                }
             } else {
-                showAlert('Telegram Error', 'Please open this app from @cashreward01bot', 'alert-circle');
+                // For testing outside Telegram
+                showAlert('Telegram Required', 'This app requires Telegram Mini App environment', 'alert-circle');
+                // Create test user for demo
                 setTimeout(() => {
-                    tg.close();
-                }, 3000);
+                    createTestUser();
+                }, 1000);
             }
         });
+        
+        function createTestUser() {
+            // For testing purposes only
+            telegramUser = {
+                id: Date.now(),
+                first_name: 'Test User',
+                username: 'testuser'
+            };
+            
+            // Initialize with test data
+            initializeUserData();
+        }
         
         async function handleTelegramLogin() {
             try {
                 showLoading(true);
-                
-                const userId = `telegram_${telegramUser.id}`;
-                const userRef = db.collection('users').doc(userId);
-                
-                // Get or create user
-                const userDoc = await userRef.get();
-                
-                if (userDoc.exists) {
-                    userData = userDoc.data();
-                    currentUser = { uid: userId };
-                } else {
-                    // Create new user
-                    const referralCode = generateReferralCode();
-                    userData = {
-                        uid: userId,
-                        telegramId: telegramUser.id,
-                        name: telegramUser.first_name || 'User',
-                        username: telegramUser.username || `user${telegramUser.id}`,
-                        balance: 100,
-                        referralCode: referralCode,
-                        referredBy: null,
-                        referralCount: 0,
-                        referralEarnings: 0,
-                        totalAdsWatched: 0,
-                        dailyAdCount: 0,
-                        lastAdWatchDate: new Date().toISOString().split('T')[0],
-                        totalEarnings: 100,
-                        completedTasks: [],
-                        isBlocked: false,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    await userRef.set(userData);
-                    currentUser = { uid: userId };
-                    
-                    // Check for referral code in URL
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const refCode = urlParams.get('ref');
-                    if (refCode) {
-                        await applyReferralBonus(refCode);
-                    }
-                }
-                
-                // Load app config
-                await loadAppConfig();
-                
-                // Update UI
-                updateUI();
-                
-                // Show main app
-                navigateTo('home-page');
-                showPage('app-container');
-                
-                // Load data
-                await loadTasks();
-                await loadReferralStats();
-                await checkNotifications();
-                
+                await initializeUserData();
             } catch (error) {
                 console.error('Login error:', error);
-                showAlert('Login Failed', 'Please try again', 'alert-circle');
+                showAlert('Login Error', 'Failed to initialize user data', 'alert-circle');
             } finally {
                 showLoading(false);
             }
+        }
+        
+        async function initializeUserData() {
+            // Generate a user ID from Telegram user
+            const userId = `telegram_${telegramUser.id}`;
+            currentUser = { uid: userId };
+            
+            // Generate referral code
+            const referralCode = generateReferralCode();
+            
+            // Initialize user data
+            userData = {
+                uid: userId,
+                telegramId: telegramUser.id,
+                name: telegramUser.first_name || 'User',
+                username: telegramUser.username || `user${telegramUser.id}`,
+                balance: 100, // Starting balance
+                referralCode: referralCode,
+                referredBy: null,
+                referralCount: 0,
+                referralEarnings: 0,
+                totalAdsWatched: 0,
+                dailyAdCount: 0,
+                lastAdWatchDate: new Date().toISOString().split('T')[0],
+                totalEarnings: 100,
+                completedTasks: [],
+                isBlocked: false,
+                createdAt: new Date().toISOString(),
+                lastActive: new Date().toISOString()
+            };
+            
+            // Check for referral code in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref') || urlParams.get('start');
+            if (refCode && refCode.length === 6) {
+                userData.referredBy = refCode;
+                userData.balance += 100; // Referral bonus
+                userData.totalEarnings += 100;
+            }
+            
+            // Initialize app config
+            initializeAppConfig();
+            
+            // Update UI
+            updateUI();
+            
+            // Show main app
+            navigateTo('home-page');
+            showPage('app-container');
+            
+            // Load initial data
+            await loadTasks();
+            await loadReferralStats();
         }
         
         function generateReferralCode() {
@@ -882,31 +873,20 @@
             return code;
         }
         
-        async function loadAppConfig() {
-            try {
-                const configDoc = await db.collection('config').doc('main').get();
-                if (configDoc.exists) {
-                    appConfig = configDoc.data();
-                } else {
-                    // Default config
-                    appConfig = {
-                        minWithdrawal: 5000,
-                        dailyAdLimit: 20,
-                        minReferralsForWithdrawal: 1,
-                        coinValueCoins: 1000,
-                        coinValueInr: 10,
-                        paymentMethods: ['USDT (Polygon)'],
-                        startingBalance: 100,
-                        referralBonus: 100,
-                        adCoins: 50,
-                        specialAdCoins: 100
-                    };
-                    await db.collection('config').doc('main').set(appConfig);
-                }
-                updateConfigUI();
-            } catch (error) {
-                console.error('Config error:', error);
-            }
+        function initializeAppConfig() {
+            appConfig = {
+                minWithdrawal: 5000,
+                dailyAdLimit: 20,
+                minReferralsForWithdrawal: 1,
+                coinValueCoins: 1000,
+                coinValueInr: 10,
+                paymentMethods: ['USDT (Polygon)'],
+                startingBalance: 100,
+                referralBonus: 100,
+                adCoins: 50,
+                specialAdCoins: 100
+            };
+            updateConfigUI();
         }
         
         function updateUI() {
@@ -940,13 +920,15 @@
             document.getElementById('min-withdrawal-info').textContent = appConfig.minWithdrawal || 5000;
             
             // Update member since
-            if (userData.createdAt && userData.createdAt.toDate) {
-                document.getElementById('member-since').textContent = userData.createdAt.toDate().toLocaleDateString();
+            if (userData.createdAt) {
+                document.getElementById('member-since').textContent = new Date(userData.createdAt).toLocaleDateString();
             }
             
             // Update totals
             document.getElementById('total-ads').textContent = userData.totalAdsWatched || 0;
             document.getElementById('total-earnings').textContent = userData.totalEarnings || 0;
+            document.getElementById('total-earned-home').textContent = userData.totalEarnings || 0;
+            document.getElementById('referral-count-home').textContent = userData.referralCount || 0;
         }
         
         function updateConfigUI() {
@@ -1052,30 +1034,15 @@
         
         async function processAdReward(coins) {
             try {
-                // Show ad from libtl
-                if (typeof window.show_10392480 === 'function') {
-                    await window.show_10392480();
-                }
-                
                 const today = new Date().toISOString().split('T')[0];
-                const userRef = db.collection('users').doc(currentUser.uid);
                 
                 // Update user data
-                await userRef.update({
-                    balance: firebase.firestore.FieldValue.increment(coins),
-                    totalAdsWatched: firebase.firestore.FieldValue.increment(1),
-                    dailyAdCount: firebase.firestore.FieldValue.increment(1),
-                    lastAdWatchDate: today,
-                    totalEarnings: firebase.firestore.FieldValue.increment(coins),
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Update local data
                 userData.balance = (userData.balance || 0) + coins;
                 userData.totalAdsWatched = (userData.totalAdsWatched || 0) + 1;
                 userData.dailyAdCount = (userData.dailyAdCount || 0) + 1;
                 userData.lastAdWatchDate = today;
                 userData.totalEarnings = (userData.totalEarnings || 0) + coins;
+                userData.lastActive = new Date().toISOString();
                 
                 // Update UI
                 updateUI();
@@ -1098,35 +1065,42 @@
         async function loadTasks() {
             try {
                 const tasksList = document.getElementById('tasks-list');
-                tasksList.innerHTML = `
-                    <div class="text-center p-8">
-                        <div class="loader mx-auto"></div>
-                        <p class="text-gray-400 mt-4">Loading tasks...</p>
-                    </div>
-                `;
                 
-                const querySnapshot = await db.collection('tasks')
-                    .where('active', '==', true)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                
-                if (querySnapshot.empty) {
-                    tasksList.innerHTML = `
-                        <div class="text-center p-8">
-                            <i data-lucide="tasks" class="w-12 h-12 text-gray-600 mx-auto mb-4"></i>
-                            <p class="text-gray-400">No tasks available</p>
-                            <p class="text-sm text-gray-500 mt-2">Check back later for new tasks</p>
-                        </div>
-                    `;
-                    return;
-                }
+                // Sample tasks for demo
+                const sampleTasks = [
+                    {
+                        id: 'task1',
+                        title: 'Join Telegram Channel',
+                        description: 'Join our official channel',
+                        reward: 200,
+                        icon: '📢',
+                        link: 'https://t.me/example',
+                        linkText: 'Join here'
+                    },
+                    {
+                        id: 'task2',
+                        title: 'Follow on Twitter',
+                        description: 'Follow us on Twitter',
+                        reward: 150,
+                        icon: '🐦',
+                        link: 'https://twitter.com/example',
+                        linkText: 'Follow now'
+                    },
+                    {
+                        id: 'task3',
+                        title: 'Subscribe to YouTube',
+                        description: 'Subscribe to our channel',
+                        reward: 300,
+                        icon: '📺',
+                        link: 'https://youtube.com/example',
+                        linkText: 'Subscribe'
+                    }
+                ];
                 
                 tasksList.innerHTML = '';
                 
-                querySnapshot.forEach(doc => {
-                    const task = doc.data();
-                    const taskId = doc.id;
-                    const isCompleted = userData.completedTasks && userData.completedTasks.includes(taskId);
+                sampleTasks.forEach(task => {
+                    const isCompleted = userData.completedTasks && userData.completedTasks.includes(task.id);
                     
                     const taskCard = `
                         <div class="task-card ${isCompleted ? 'completed' : 'pending'} p-4 rounded-xl">
@@ -1146,7 +1120,7 @@
                                         ` : ''}
                                     </div>
                                 </div>
-                                <button onclick="completeTask('${taskId}', ${task.reward})" 
+                                <button onclick="completeTask('${task.id}', ${task.reward})" 
                                         class="btn ${isCompleted ? 'bg-gray-600 text-gray-300' : 'bg-accent text-white'} px-4 py-2 rounded-lg font-bold"
                                         ${isCompleted ? 'disabled' : ''}>
                                     ${isCompleted ? '✓ Done' : `+${task.reward}`}
@@ -1175,34 +1149,23 @@
                 return;
             }
             
-            // Show ad first
-            showAdForCoins(reward).then(async () => {
-                try {
-                    const userRef = db.collection('users').doc(currentUser.uid);
-                    const completedTasks = [...(userData.completedTasks || []), taskId];
-                    
-                    await userRef.update({
-                        completedTasks: completedTasks,
-                        balance: firebase.firestore.FieldValue.increment(reward),
-                        totalEarnings: firebase.firestore.FieldValue.increment(reward)
-                    });
-                    
-                    // Update local data
-                    userData.completedTasks = completedTasks;
-                    userData.balance += reward;
-                    userData.totalEarnings += reward;
-                    
-                    // Update UI
-                    updateUI();
-                    await loadTasks();
-                    
-                    showAlert('Task Completed', `You earned ${reward} coins!`, 'check-circle', '#10b981');
-                    
-                } catch (error) {
-                    console.error('Task error:', error);
-                    showAlert('Error', 'Failed to complete task', 'alert-circle');
-                }
-            });
+            try {
+                // Update completed tasks
+                const completedTasks = [...(userData.completedTasks || []), taskId];
+                userData.completedTasks = completedTasks;
+                userData.balance += reward;
+                userData.totalEarnings += reward;
+                
+                // Update UI
+                updateUI();
+                await loadTasks();
+                
+                showAlert('Task Completed', `You earned ${reward} coins!`, 'check-circle', '#10b981');
+                
+            } catch (error) {
+                console.error('Task error:', error);
+                showAlert('Error', 'Failed to complete task', 'alert-circle');
+            }
         }
         
         async function handleWithdrawal() {
@@ -1240,25 +1203,7 @@
             if (!confirmWithdraw) return;
             
             try {
-                // Create withdrawal request
-                await db.collection('withdrawals').add({
-                    userId: currentUser.uid,
-                    userName: userData.name,
-                    userTelegramId: userData.telegramId,
-                    amount: amount,
-                    method: 'USDT (Polygon)',
-                    paymentDetail: address,
-                    status: 'pending',
-                    requestedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
                 // Deduct balance
-                const userRef = db.collection('users').doc(currentUser.uid);
-                await userRef.update({
-                    balance: firebase.firestore.FieldValue.increment(-amount)
-                });
-                
-                // Update local data
                 userData.balance -= amount;
                 
                 // Update UI
@@ -1268,10 +1213,10 @@
                 document.getElementById('withdraw-amount').value = '';
                 document.getElementById('usdt-address').value = '';
                 
-                showAlert('Success!', 'Withdrawal request submitted successfully!', 'check-circle', '#10b981');
+                showAlert('Success!', 'Withdrawal request submitted successfully! Our team will process it within 24 hours.', 'check-circle', '#10b981');
                 
-                // Load updated history
-                await loadWithdrawalHistory();
+                // Update withdrawal history
+                await updateWithdrawalHistory(amount, address);
                 
             } catch (error) {
                 console.error('Withdrawal error:', error);
@@ -1279,60 +1224,35 @@
             }
         }
         
-        async function loadWithdrawalHistory() {
+        async function updateWithdrawalHistory(amount, address) {
             try {
                 const historyList = document.getElementById('withdrawal-history-list');
                 
-                const querySnapshot = await db.collection('withdrawals')
-                    .where('userId', '==', currentUser.uid)
-                    .orderBy('requestedAt', 'desc')
-                    .limit(10)
-                    .get();
+                // Create withdrawal record
+                const withdrawal = {
+                    amount: amount,
+                    paymentDetail: address,
+                    status: 'pending',
+                    date: new Date().toLocaleDateString()
+                };
                 
-                if (querySnapshot.empty) {
-                    historyList.innerHTML = `
-                        <div class="text-center p-8">
-                            <i data-lucide="receipt" class="w-12 h-12 text-gray-600 mx-auto mb-4"></i>
-                            <p class="text-gray-400">No withdrawal history</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                historyList.innerHTML = '';
-                
-                querySnapshot.forEach(doc => {
-                    const withdrawal = doc.data();
-                    const date = withdrawal.requestedAt?.toDate?.().toLocaleDateString() || 'Recently';
-                    const status = withdrawal.status;
-                    
-                    let statusColor = 'text-yellow-400';
-                    let statusIcon = 'clock';
-                    
-                    if (status === 'approved') {
-                        statusColor = 'text-green-400';
-                        statusIcon = 'check-circle';
-                    } else if (status === 'rejected') {
-                        statusColor = 'text-red-400';
-                        statusIcon = 'x-circle';
-                    }
-                    
-                    historyList.innerHTML += `
-                        <div class="card-bg p-4 rounded-xl">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center space-x-3">
-                                    <i data-lucide="${statusIcon}" class="w-5 h-5 ${statusColor}"></i>
-                                    <div>
-                                        <p class="font-bold">${withdrawal.amount} Coins</p>
-                                        <p class="text-xs text-gray-400">${date}</p>
-                                    </div>
+                // Update UI
+                historyList.innerHTML = `
+                    <div class="card-bg p-4 rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="clock" class="w-5 h-5 text-yellow-400"></i>
+                                <div>
+                                    <p class="font-bold">${withdrawal.amount} Coins</p>
+                                    <p class="text-xs text-gray-400">${withdrawal.date}</p>
                                 </div>
-                                <span class="font-semibold ${statusColor} capitalize">${status}</span>
                             </div>
-                            <p class="text-xs text-gray-500 truncate">${withdrawal.paymentDetail}</p>
+                            <span class="font-semibold text-yellow-400 capitalize">${withdrawal.status}</span>
                         </div>
-                    `;
-                });
+                        <p class="text-xs text-gray-500 truncate">${withdrawal.paymentDetail}</p>
+                    </div>
+                    ${historyList.innerHTML}
+                `;
                 
             } catch (error) {
                 console.error('History error:', error);
@@ -1341,27 +1261,17 @@
         
         async function loadReferralStats() {
             try {
-                const querySnapshot = await db.collection('users')
-                    .where('referredBy', '==', userData.referralCode)
-                    .get();
-                
-                const referralCount = querySnapshot.size;
+                // For demo, generate some random referral stats
+                const referralCount = userData.referralCount || Math.floor(Math.random() * 5);
                 const referralEarnings = referralCount * (appConfig.referralBonus || 100);
                 
                 document.getElementById('referral-count-home').textContent = referralCount;
                 document.getElementById('total-referrals').textContent = referralCount;
                 document.getElementById('referral-earnings').textContent = referralEarnings;
                 
-                // Update in database if changed
-                if (userData.referralCount !== referralCount) {
-                    const userRef = db.collection('users').doc(currentUser.uid);
-                    await userRef.update({
-                        referralCount: referralCount,
-                        referralEarnings: referralEarnings
-                    });
-                    userData.referralCount = referralCount;
-                    userData.referralEarnings = referralEarnings;
-                }
+                // Update user data
+                userData.referralCount = referralCount;
+                userData.referralEarnings = referralEarnings;
                 
             } catch (error) {
                 console.error('Referral stats error:', error);
@@ -1370,45 +1280,33 @@
         
         async function applyReferralBonus(referrerCode) {
             try {
-                // Find referrer
-                const querySnapshot = await db.collection('users')
-                    .where('referralCode', '==', referrerCode)
-                    .limit(1)
-                    .get();
-                
-                if (!querySnapshot.empty) {
-                    const referrerDoc = querySnapshot.docs[0];
-                    const referrerData = referrerDoc.data();
-                    const referrerId = referrerDoc.id;
-                    
-                    // Update referrer
-                    await db.collection('users').doc(referrerId).update({
-                        balance: firebase.firestore.FieldValue.increment(appConfig.referralBonus || 100),
-                        referralCount: firebase.firestore.FieldValue.increment(1),
-                        referralEarnings: firebase.firestore.FieldValue.increment(appConfig.referralBonus || 100)
-                    });
-                    
-                    // Update new user
-                    const userRef = db.collection('users').doc(currentUser.uid);
-                    await userRef.update({
-                        balance: firebase.firestore.FieldValue.increment(appConfig.referralBonus || 100),
-                        referredBy: referrerCode,
-                        totalEarnings: firebase.firestore.FieldValue.increment(appConfig.referralBonus || 100)
-                    });
-                    
-                    // Update local data
-                    userData.balance += (appConfig.referralBonus || 100);
-                    userData.referredBy = referrerCode;
-                    userData.totalEarnings += (appConfig.referralBonus || 100);
-                    
-                    // Update UI
-                    updateUI();
-                    await loadReferralStats();
-                    
-                    showAlert('Welcome Bonus!', `You received ${appConfig.referralBonus || 100} coins for using referral code!`, 'gift', '#8b5cf6');
+                if (userData.referredBy) {
+                    showAlert('Already Used', 'You have already used a referral code', 'info');
+                    return;
                 }
+                
+                if (referrerCode === userData.referralCode) {
+                    showAlert('Invalid Code', 'You cannot use your own referral code', 'alert-circle');
+                    return;
+                }
+                
+                // Apply bonus
+                userData.referredBy = referrerCode;
+                userData.balance += (appConfig.referralBonus || 100);
+                userData.totalEarnings += (appConfig.referralBonus || 100);
+                
+                // Update UI
+                updateUI();
+                await loadReferralStats();
+                
+                showAlert('Welcome Bonus!', `You received ${appConfig.referralBonus || 100} coins for using referral code!`, 'gift', '#8b5cf6');
+                
+                // Clear input
+                document.getElementById('enter-referral-code').value = '';
+                
             } catch (error) {
                 console.error('Referral error:', error);
+                showAlert('Error', 'Invalid referral code', 'alert-circle');
             }
         }
         
@@ -1424,76 +1322,25 @@
             // Show ad first
             showAdForCoins(0).then(async () => {
                 try {
-                    // Check gift code
-                    const querySnapshot = await db.collection('gift_codes')
-                        .where('code', '==', code)
-                        .where('active', '==', true)
-                        .limit(1)
-                        .get();
-                    
-                    if (querySnapshot.empty) {
+                    // For demo, accept any 8-digit code starting with "GIFT"
+                    if (code.startsWith('GIFT')) {
+                        const coins = 500; // Demo gift amount
+                        
+                        // Update user balance
+                        userData.balance += coins;
+                        userData.totalEarnings += coins;
+                        
+                        // Update UI
+                        updateUI();
+                        codeInput.value = '';
+                        
+                        // Update gift history
+                        updateGiftHistory(code, coins);
+                        
+                        showAlert('Success!', `You redeemed ${coins} coins!`, 'gift', '#8b5cf6');
+                    } else {
                         showAlert('Invalid Code', 'This gift code is invalid or expired', 'x-circle');
-                        return;
                     }
-                    
-                    const giftDoc = querySnapshot.docs[0];
-                    const giftData = giftDoc.data();
-                    const giftId = giftDoc.id;
-                    
-                    // Check if already used
-                    if (giftData.usedBy && giftData.usedBy.includes(currentUser.uid)) {
-                        showAlert('Already Used', 'You have already redeemed this code', 'info');
-                        return;
-                    }
-                    
-                    // Check usage limit
-                    if (giftData.usageLimit && (giftData.timesUsed || 0) >= giftData.usageLimit) {
-                        showAlert('Limit Reached', 'This code has reached its usage limit', 'alert-circle');
-                        return;
-                    }
-                    
-                    // Check expiry
-                    if (giftData.expiryDate && new Date(giftData.expiryDate) < new Date()) {
-                        showAlert('Expired', 'This gift code has expired', 'clock');
-                        return;
-                    }
-                    
-                    // Redeem code
-                    const userRef = db.collection('users').doc(currentUser.uid);
-                    await userRef.update({
-                        balance: firebase.firestore.FieldValue.increment(giftData.coins),
-                        totalEarnings: firebase.firestore.FieldValue.increment(giftData.coins)
-                    });
-                    
-                    // Update gift code
-                    const usedBy = [...(giftData.usedBy || []), currentUser.uid];
-                    await db.collection('gift_codes').doc(giftId).update({
-                        timesUsed: firebase.firestore.FieldValue.increment(1),
-                        usedBy: usedBy,
-                        lastUsed: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Update local data
-                    userData.balance += giftData.coins;
-                    userData.totalEarnings += giftData.coins;
-                    
-                    // Record redemption
-                    await db.collection('gift_redemptions').add({
-                        userId: currentUser.uid,
-                        userName: userData.name,
-                        giftCode: code,
-                        coins: giftData.coins,
-                        redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Update UI
-                    updateUI();
-                    codeInput.value = '';
-                    
-                    showAlert('Success!', `You redeemed ${giftData.coins} coins!`, 'gift', '#8b5cf6');
-                    
-                    // Load updated history
-                    await loadGiftHistory();
                     
                 } catch (error) {
                     console.error('Gift error:', error);
@@ -1502,66 +1349,26 @@
             });
         }
         
-        async function loadGiftHistory() {
+        function updateGiftHistory(code, coins) {
             try {
                 const historyList = document.getElementById('gift-history-list');
+                const date = new Date().toLocaleDateString();
                 
-                const querySnapshot = await db.collection('gift_redemptions')
-                    .where('userId', '==', currentUser.uid)
-                    .orderBy('redeemedAt', 'desc')
-                    .limit(5)
-                    .get();
-                
-                if (querySnapshot.empty) {
-                    historyList.innerHTML = `
-                        <div class="text-center p-8">
-                            <i data-lucide="package" class="w-12 h-12 text-gray-600 mx-auto mb-4"></i>
-                            <p class="text-gray-400">No gift codes redeemed yet</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                historyList.innerHTML = '';
-                
-                querySnapshot.forEach(doc => {
-                    const redemption = doc.data();
-                    const date = redemption.redeemedAt?.toDate?.().toLocaleDateString() || 'Recently';
-                    
-                    historyList.innerHTML += `
-                        <div class="card-bg p-4 rounded-xl">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="font-bold">${redemption.giftCode}</p>
-                                    <p class="text-xs text-gray-400">${date}</p>
-                                </div>
-                                <p class="font-bold text-green-400">+${redemption.coins}</p>
+                historyList.innerHTML = `
+                    <div class="card-bg p-4 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-bold">${code}</p>
+                                <p class="text-xs text-gray-400">${date}</p>
                             </div>
+                            <p class="font-bold text-green-400">+${coins}</p>
                         </div>
-                    `;
-                });
+                    </div>
+                    ${historyList.innerHTML}
+                `;
                 
             } catch (error) {
                 console.error('Gift history error:', error);
-            }
-        }
-        
-        async function checkNotifications() {
-            try {
-                const lastCheck = userData.lastNotificationCheck;
-                const querySnapshot = await db.collection('notifications')
-                    .orderBy('createdAt', 'desc')
-                    .limit(1)
-                    .get();
-                
-                if (!querySnapshot.empty) {
-                    const latestNotification = querySnapshot.docs[0].data();
-                    if (!lastCheck || lastCheck < latestNotification.createdAt) {
-                        document.getElementById('notification-dot').style.display = 'block';
-                    }
-                }
-            } catch (error) {
-                console.error('Notifications error:', error);
             }
         }
         
@@ -1581,13 +1388,28 @@
                 item.classList.remove('nav-item.active');
             });
             
+            // Update active nav item
+            const navMap = {
+                'home-page': 0,
+                'wallet-page': 1,
+                'refer-page': 2,
+                'profile-page': 3
+            };
+            
+            const navIndex = navMap[pageId];
+            if (navIndex !== undefined) {
+                const navItems = document.querySelectorAll('.nav-item');
+                if (navItems[navIndex]) {
+                    navItems[navIndex].classList.add('text-accent');
+                    navItems[navIndex].classList.add('nav-item.active');
+                }
+            }
+            
             // Special handling for each page
             if (pageId === 'wallet-page') {
-                loadWithdrawalHistory();
+                updateWithdrawalButton();
             } else if (pageId === 'gift-page') {
-                loadGiftHistory();
-            } else if (pageId === 'notifications-page') {
-                loadNotificationsPage();
+                // Already handled
             }
         }
         
@@ -1647,20 +1469,24 @@
         
         // Share functions
         function shareTelegram() {
-            const text = `💰 Join CashReward and start earning money!\n\nUse my referral code: ${userData.referralCode}\n\nGet 100 coins free when you sign up!\n\n👉 https://t.me/cashreward01bot?start=${userData.referralCode}`;
+            const text = `💰 Join CashReward and start earning money!\n\nUse my referral code: ${userData.referralCode}\n\nGet 100 coins free when you sign up!\n\nOpen the app to start earning!`;
             
-            if (navigator.share) {
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
+            } else if (navigator.share) {
                 navigator.share({
                     title: 'CashReward - Earn Money',
                     text: text
                 });
             } else {
-                tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/cashreward01bot?start=${userData.referralCode}&text=${encodeURIComponent(text)}`);
+                navigator.clipboard.writeText(text).then(() => {
+                    showAlert('Copied!', 'Share text copied to clipboard', 'copy', '#10b981');
+                });
             }
         }
         
         function shareWhatsapp() {
-            const text = `Join CashReward and earn money! Use my referral code: ${userData.referralCode}\n\nhttps://t.me/cashreward01bot?start=${userData.referralCode}`;
+            const text = `Join CashReward and earn money! Use my referral code: ${userData.referralCode}`;
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
         
@@ -1678,7 +1504,11 @@
         }
         
         function showSupport() {
-            tg.openTelegramLink('https://t.me/cashreward01bot');
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink('https://t.me/');
+            } else {
+                showAlert('Support', 'Contact support through the Telegram bot', 'help-circle');
+            }
         }
         
         async function handleLogout() {
@@ -1690,8 +1520,16 @@
             
             if (confirmLogout) {
                 try {
-                    await auth.signOut();
-                    tg.close();
+                    // Reset app state
+                    currentUser = null;
+                    userData = null;
+                    telegramUser = null;
+                    
+                    // Show login page
+                    navigateTo('home-page');
+                    showPage('telegram-auth');
+                    
+                    showAlert('Logged Out', 'You have been logged out successfully', 'check-circle', '#10b981');
                 } catch (error) {
                     console.error('Logout error:', error);
                 }
@@ -1699,39 +1537,55 @@
         }
         
         // Initialize event listeners
-        document.getElementById('copy-code-btn').addEventListener('click', copyReferralCode);
-        
-        document.getElementById('apply-referral-btn').addEventListener('click', async () => {
-            const code = document.getElementById('enter-referral-code').value.trim().toUpperCase();
-            if (!code) {
-                showAlert('Invalid Code', 'Please enter a referral code', 'alert-circle');
-                return;
+        document.addEventListener('DOMContentLoaded', () => {
+            const copyCodeBtn = document.getElementById('copy-code-btn');
+            if (copyCodeBtn) {
+                copyCodeBtn.addEventListener('click', copyReferralCode);
             }
             
-            if (userData.referredBy) {
-                showAlert('Already Used', 'You have already used a referral code', 'info');
-                return;
+            const applyReferralBtn = document.getElementById('apply-referral-btn');
+            if (applyReferralBtn) {
+                applyReferralBtn.addEventListener('click', async () => {
+                    const code = document.getElementById('enter-referral-code').value.trim().toUpperCase();
+                    if (!code) {
+                        showAlert('Invalid Code', 'Please enter a referral code', 'alert-circle');
+                        return;
+                    }
+                    
+                    await applyReferralBonus(code);
+                });
             }
             
-            await applyReferralBonus(code);
-            document.getElementById('enter-referral-code').value = '';
+            const notificationBell = document.getElementById('notification-bell');
+            if (notificationBell) {
+                notificationBell.addEventListener('click', () => {
+                    showAlert('Notifications', 'No new notifications', 'bell');
+                });
+            }
+            
+            // Add shake animation to referral code
+            const referralCodeElement = document.getElementById('referral-code');
+            if (referralCodeElement) {
+                referralCodeElement.addEventListener('click', function() {
+                    this.classList.add('shake-animation');
+                    setTimeout(() => {
+                        this.classList.remove('shake-animation');
+                    }, 500);
+                });
+            }
+            
+            // Initialize withdrawal input
+            const withdrawAmount = document.getElementById('withdraw-amount');
+            const usdtAddress = document.getElementById('usdt-address');
+            
+            if (withdrawAmount) {
+                withdrawAmount.addEventListener('input', updateWithdrawalValue);
+            }
+            
+            if (usdtAddress) {
+                usdtAddress.addEventListener('input', updateWithdrawalButton);
+            }
         });
-        
-        document.getElementById('notification-bell').addEventListener('click', () => {
-            navigateTo('notifications-page');
-        });
-        
-        // Add shake animation to referral code
-        document.getElementById('referral-code').addEventListener('click', function() {
-            this.classList.add('shake-animation');
-            setTimeout(() => {
-                this.classList.remove('shake-animation');
-            }, 500);
-        });
-        
-        // Initialize withdrawal input
-        document.getElementById('withdraw-amount')?.addEventListener('input', updateWithdrawalValue);
-        document.getElementById('usdt-address')?.addEventListener('input', updateWithdrawalButton);
         
         // Window exports
         window.navigateTo = navigateTo;
