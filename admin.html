@@ -395,16 +395,16 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
-                    <input id="admin-email" type="email" 
+                    <input id="admin-email" type="text" 
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                           placeholder="admin@cashreward.com">
+                           placeholder="kishan74580@gmail.com" value="kishan74580@gmail.com">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                     <input id="admin-password" type="password" 
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                           placeholder="••••••••">
+                           placeholder="••••••••" value="admin123">
                 </div>
                 
                 <button id="admin-login-btn" 
@@ -438,7 +438,7 @@
                 </div>
                 
                 <nav class="mt-8 px-4">
-                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="dashboard-page">
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2 active" data-page="dashboard-page">
                         <i data-lucide="home" class="inline-block w-5 h-5 mr-3"></i>
                         Dashboard
                     </a>
@@ -636,24 +636,13 @@
                                 </thead>
                                 <tbody id="users-table-body">
                                     <!-- Users will load here -->
+                                    <tr>
+                                        <td colspan="6" class="text-center py-8 text-gray-500">
+                                            Loading users...
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
-                        </div>
-                        
-                        <!-- Pagination -->
-                        <div class="flex items-center justify-between p-4 border-t">
-                            <div class="text-sm text-gray-600">
-                                Showing <span id="user-start">0</span>-<span id="user-end">0</span> of <span id="user-total">0</span> users
-                            </div>
-                            <div class="flex space-x-2">
-                                <button id="user-prev" class="pagination-btn">
-                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                                </button>
-                                <span class="page-number">1</span>
-                                <button id="user-next" class="pagination-btn">
-                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -698,6 +687,11 @@
                                 </thead>
                                 <tbody id="withdrawals-table-body">
                                     <!-- Withdrawals will load here -->
+                                    <tr>
+                                        <td colspan="7" class="text-center py-8 text-gray-500">
+                                            Loading withdrawals...
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -725,6 +719,9 @@
                             <h3 class="text-lg font-bold mb-4">Active Tasks</h3>
                             <div id="tasks-list-admin" class="space-y-4">
                                 <!-- Tasks will load here -->
+                                <div class="text-center py-8">
+                                    <p class="text-gray-500">No tasks created yet</p>
+                                </div>
                             </div>
                         </div>
                         
@@ -880,6 +877,11 @@
                                     </thead>
                                     <tbody id="giftcodes-table-body">
                                         <!-- Gift codes will load here -->
+                                        <tr>
+                                            <td colspan="6" class="text-center py-8 text-gray-500">
+                                                No gift codes generated yet
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -936,6 +938,9 @@
                             <h3 class="text-lg font-bold mb-4">Recent Notifications</h3>
                             <div id="recent-notifications" class="space-y-4">
                                 <!-- Notifications will load here -->
+                                <div class="text-center py-8">
+                                    <p class="text-gray-500">No notifications sent yet</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1072,48 +1077,46 @@
         </div>
     </div>
 
-    <!-- Firebase Configuration -->
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyCE29KuB_R6f2HwgFeHa5QS3OeVbzUTDyM",
-            authDomain: "cashreward01bot.firebaseapp.com",
-            projectId: "cashreward01bot",
-            storageBucket: "cashreward01bot.firebasestorage.app",
-            messagingSenderId: "196200872526",
-            appId: "1:196200872526:web:aeb685560be9878d40e11f",
-            databaseURL: "https://cashreward01bot-default-rtdb.firebaseio.com"
+        // Admin credentials (for demo - in production use secure server-side auth)
+        const ADMIN_CREDENTIALS = {
+            email: "kishan74580@gmail.com",
+            password: "admin123"
         };
         
-        // Admin UID
-        const ADMIN_UID = "K7Ennhb6OZZ8d83Dd33piSf6Sq72";
-        
         // Global variables
-        let currentAdmin = null;
-        let appConfig = {};
-        let currentPage = 1;
-        const pageSize = 10;
+        let isAdminLoggedIn = false;
+        let appConfig = {
+            minWithdrawal: 5000,
+            dailyAdLimit: 20,
+            minReferralsForWithdrawal: 1,
+            referralBonus: 100,
+            coinValueCoins: 1000,
+            coinValueInr: 10,
+            startingBalance: 100,
+            adCoins: 50,
+            specialAdCoins: 100
+        };
         
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
+        // Sample data storage (in production, use database)
+        let usersData = [];
+        let withdrawalsData = [];
+        let tasksData = [];
+        let giftCodesData = [];
+        let notificationsData = [];
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             setupEventListeners();
             
-            // Check admin login
-            auth.onAuthStateChanged((user) => {
-                if (user && user.uid === ADMIN_UID) {
-                    currentAdmin = user;
-                    showAdminPanel();
-                    loadDashboardData();
-                } else {
-                    showLogin();
-                }
-            });
+            // Check if already logged in
+            const savedLogin = localStorage.getItem('adminLoggedIn');
+            if (savedLogin === 'true') {
+                isAdminLoggedIn = true;
+                showAdminPanel();
+                loadDashboardData();
+            }
         });
         
         function setupEventListeners() {
@@ -1131,29 +1134,9 @@
                     navigateTo(page);
                 });
             });
-            
-            // User search
-            document.getElementById('user-search')?.addEventListener('input', searchUsers);
-            document.getElementById('user-filter')?.addEventListener('change', loadUsers);
-            
-            // Withdrawal filter
-            document.getElementById('withdrawal-filter')?.addEventListener('change', loadWithdrawals);
-            
-            // Pagination
-            document.getElementById('user-prev')?.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    loadUsers();
-                }
-            });
-            
-            document.getElementById('user-next')?.addEventListener('click', () => {
-                currentPage++;
-                loadUsers();
-            });
         }
         
-        async function handleAdminLogin() {
+        function handleAdminLogin() {
             const email = document.getElementById('admin-email').value;
             const password = document.getElementById('admin-password').value;
             
@@ -1162,32 +1145,23 @@
                 return;
             }
             
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                
-                if (userCredential.user.uid !== ADMIN_UID) {
-                    await auth.signOut();
-                    showAlert('Access Denied', 'You are not authorized to access this panel');
-                    return;
-                }
-                
-                currentAdmin = userCredential.user;
+            // Simple authentication (for demo only)
+            if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+                isAdminLoggedIn = true;
+                localStorage.setItem('adminLoggedIn', 'true');
                 showAdminPanel();
                 loadDashboardData();
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                showAlert('Login Failed', error.message);
+                showAlert('Success', 'Login successful!');
+            } else {
+                showAlert('Login Failed', 'Invalid email or password');
             }
         }
         
-        async function handleAdminLogout() {
-            try {
-                await auth.signOut();
-                showLogin();
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
+        function handleAdminLogout() {
+            isAdminLoggedIn = false;
+            localStorage.removeItem('adminLoggedIn');
+            showLogin();
+            showAlert('Logged Out', 'You have been logged out successfully');
         }
         
         function showLogin() {
@@ -1243,526 +1217,411 @@
         
         async function loadDashboardData() {
             try {
-                // Load total users
-                const usersSnapshot = await db.collection('users').get();
-                document.getElementById('total-users').textContent = usersSnapshot.size;
+                // For demo purposes, generate sample data
+                generateSampleData();
                 
-                // Load pending withdrawals
-                const pendingSnapshot = await db.collection('withdrawals')
-                    .where('status', '==', 'pending')
-                    .get();
-                document.getElementById('pending-withdrawals').textContent = pendingSnapshot.size;
+                // Update stats
+                document.getElementById('total-users').textContent = usersData.length;
+                document.getElementById('pending-withdrawals').textContent = 
+                    withdrawalsData.filter(w => w.status === 'pending').length;
                 
-                // Load today's revenue (calculate from gift redemptions)
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                // Calculate today's revenue (sample)
+                const todayRevenue = Math.floor(Math.random() * 500) + 100;
+                document.getElementById('today-revenue').textContent = `₹${todayRevenue}`;
                 
-                const giftSnapshot = await db.collection('gift_redemptions')
-                    .where('redeemedAt', '>=', today)
-                    .get();
-                
-                let totalRevenue = 0;
-                giftSnapshot.forEach(doc => {
-                    const redemption = doc.data();
-                    const coins = redemption.coins || 0;
-                    const inrValue = (coins * (appConfig.coinValueInr || 10)) / (appConfig.coinValueCoins || 1000);
-                    totalRevenue += inrValue;
-                });
-                
-                document.getElementById('today-revenue').textContent = `₹${totalRevenue.toFixed(2)}`;
-                
-                // Load active tasks
-                const tasksSnapshot = await db.collection('tasks')
-                    .where('active', '==', true)
-                    .get();
-                document.getElementById('active-tasks').textContent = tasksSnapshot.size;
+                document.getElementById('active-tasks').textContent = tasksData.length;
                 
                 // Load recent withdrawals
-                await loadRecentWithdrawals();
+                loadRecentWithdrawals();
                 
                 // Load recent users
-                await loadRecentUsers();
+                loadRecentUsers();
                 
             } catch (error) {
                 console.error('Dashboard error:', error);
+                showAlert('Error', 'Failed to load dashboard data');
             }
         }
         
-        async function loadRecentWithdrawals() {
-            try {
-                const recentDiv = document.getElementById('recent-withdrawals');
+        function generateSampleData() {
+            // Generate sample users
+            if (usersData.length === 0) {
+                const sampleNames = ['John Doe', 'Alice Smith', 'Bob Johnson', 'Charlie Brown', 'David Wilson'];
+                const sampleUsernames = ['john_doe', 'alice_smith', 'bob_j', 'charlie_b', 'david_w'];
                 
-                const snapshot = await db.collection('withdrawals')
-                    .orderBy('requestedAt', 'desc')
-                    .limit(5)
-                    .get();
-                
-                if (snapshot.empty) {
-                    recentDiv.innerHTML = '<p class="text-gray-500 text-center">No recent withdrawals</p>';
-                    return;
+                for (let i = 0; i < 15; i++) {
+                    usersData.push({
+                        id: `user_${Date.now()}_${i}`,
+                        telegramId: Math.floor(Math.random() * 1000000000),
+                        name: sampleNames[Math.floor(Math.random() * sampleNames.length)],
+                        username: sampleUsernames[Math.floor(Math.random() * sampleUsernames.length)],
+                        balance: Math.floor(Math.random() * 5000) + 100,
+                        referralCount: Math.floor(Math.random() * 10),
+                        isBlocked: Math.random() > 0.9,
+                        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+                    });
                 }
+            }
+            
+            // Generate sample withdrawals
+            if (withdrawalsData.length === 0) {
+                const statuses = ['pending', 'approved', 'rejected'];
+                const addresses = [
+                    '0x742d35Cc6634C0532925a3b844Bc9e37A5b32093',
+                    '0x53D284357ec70cE289D6D64134DfAc8E511c8a3D',
+                    '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+                ];
                 
-                recentDiv.innerHTML = '';
+                for (let i = 0; i < 10; i++) {
+                    const user = usersData[Math.floor(Math.random() * usersData.length)];
+                    withdrawalsData.push({
+                        id: `withdrawal_${Date.now()}_${i}`,
+                        userName: user.name,
+                        userTelegramId: user.telegramId,
+                        amount: Math.floor(Math.random() * 5000) + 1000,
+                        paymentDetail: addresses[Math.floor(Math.random() * addresses.length)],
+                        status: statuses[Math.floor(Math.random() * statuses.length)],
+                        requestedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+                    });
+                }
+            }
+            
+            // Generate sample gift codes
+            if (giftCodesData.length === 0) {
+                const codes = ['GIFT2024', 'WELCOME50', 'BONUS100', 'SPECIAL200'];
                 
-                snapshot.forEach(doc => {
-                    const withdrawal = doc.data();
-                    const date = withdrawal.requestedAt?.toDate?.().toLocaleDateString() || 'Recently';
-                    const status = withdrawal.status;
-                    
-                    let statusBadge = '<span class="badge badge-warning">Pending</span>';
-                    if (status === 'approved') {
-                        statusBadge = '<span class="badge badge-success">Approved</span>';
-                    } else if (status === 'rejected') {
-                        statusBadge = '<span class="badge badge-danger">Rejected</span>';
-                    }
-                    
-                    recentDiv.innerHTML += `
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p class="font-semibold">${withdrawal.userName || 'User'}</p>
-                                <p class="text-sm text-gray-600">${withdrawal.amount} coins</p>
-                                <p class="text-xs text-gray-500">${date}</p>
-                            </div>
-                            ${statusBadge}
-                        </div>
-                    `;
+                codes.forEach((code, index) => {
+                    giftCodesData.push({
+                        id: `gift_${Date.now()}_${index}`,
+                        code: code,
+                        coins: [50, 100, 200][Math.floor(Math.random() * 3)],
+                        timesUsed: Math.floor(Math.random() * 5),
+                        usageLimit: 10,
+                        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        active: Math.random() > 0.3
+                    });
                 });
+            }
+            
+            // Generate sample notifications
+            if (notificationsData.length === 0) {
+                const messages = [
+                    'New tasks added! Earn more coins today!',
+                    'Special offer: Double coins for referrals this week!',
+                    'System maintenance scheduled for tomorrow',
+                    'New gift codes available for redemption'
+                ];
                 
-            } catch (error) {
-                console.error('Recent withdrawals error:', error);
+                messages.forEach((message, index) => {
+                    notificationsData.push({
+                        id: `notif_${Date.now()}_${index}`,
+                        title: 'System Announcement',
+                        message: message,
+                        target: 'all',
+                        createdAt: new Date(Date.now() - index * 2 * 24 * 60 * 60 * 1000)
+                    });
+                });
             }
         }
         
-        async function loadRecentUsers() {
-            try {
-                const recentDiv = document.getElementById('recent-users');
+        function loadRecentWithdrawals() {
+            const recentDiv = document.getElementById('recent-withdrawals');
+            
+            const recentWithdrawals = [...withdrawalsData]
+                .sort((a, b) => b.requestedAt - a.requestedAt)
+                .slice(0, 5);
+            
+            if (recentWithdrawals.length === 0) {
+                recentDiv.innerHTML = '<p class="text-gray-500 text-center">No recent withdrawals</p>';
+                return;
+            }
+            
+            recentDiv.innerHTML = '';
+            
+            recentWithdrawals.forEach(withdrawal => {
+                const date = withdrawal.requestedAt.toLocaleDateString();
+                const status = withdrawal.status;
                 
-                const snapshot = await db.collection('users')
-                    .orderBy('createdAt', 'desc')
-                    .limit(5)
-                    .get();
-                
-                if (snapshot.empty) {
-                    recentDiv.innerHTML = '<p class="text-gray-500 text-center">No recent users</p>';
-                    return;
+                let statusBadge = '<span class="badge badge-warning">Pending</span>';
+                if (status === 'approved') {
+                    statusBadge = '<span class="badge badge-success">Approved</span>';
+                } else if (status === 'rejected') {
+                    statusBadge = '<span class="badge badge-danger">Rejected</span>';
                 }
                 
-                recentDiv.innerHTML = '';
-                
-                snapshot.forEach(doc => {
-                    const user = doc.data();
-                    const date = user.createdAt?.toDate?.().toLocaleDateString() || 'Recently';
-                    
-                    recentDiv.innerHTML += `
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
-                                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold">${user.name || 'User'}</p>
-                                    <p class="text-sm text-gray-600">${user.balance || 0} coins</p>
-                                </div>
-                            </div>
+                recentDiv.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-semibold">${withdrawal.userName || 'User'}</p>
+                            <p class="text-sm text-gray-600">${withdrawal.amount} coins</p>
                             <p class="text-xs text-gray-500">${date}</p>
                         </div>
-                    `;
-                });
-                
-            } catch (error) {
-                console.error('Recent users error:', error);
-            }
+                        ${statusBadge}
+                    </div>
+                `;
+            });
         }
         
-        async function loadUsers() {
-            try {
-                const tbody = document.getElementById('users-table-body');
+        function loadRecentUsers() {
+            const recentDiv = document.getElementById('recent-users');
+            
+            const recentUsers = [...usersData]
+                .sort((a, b) => b.createdAt - a.createdAt)
+                .slice(0, 5);
+            
+            if (recentUsers.length === 0) {
+                recentDiv.innerHTML = '<p class="text-gray-500 text-center">No recent users</p>';
+                return;
+            }
+            
+            recentDiv.innerHTML = '';
+            
+            recentUsers.forEach(user => {
+                const date = user.createdAt.toLocaleDateString();
+                
+                recentDiv.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
+                                <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">${user.name || 'User'}</p>
+                                <p class="text-sm text-gray-600">${user.balance || 0} coins</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500">${date}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        function loadUsers() {
+            const tbody = document.getElementById('users-table-body');
+            
+            if (usersData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-8">
-                            <div class="loader mx-auto"></div>
-                            <p class="text-gray-500 mt-4">Loading users...</p>
+                        <td colspan="6" class="text-center py-8 text-gray-500">
+                            No users found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            usersData.forEach(user => {
+                const isBlocked = user.isBlocked || false;
+                
+                const row = `
+                    <tr>
+                        <td class="font-mono text-sm">${user.telegramId || user.id.substring(8, 16)}</td>
+                        <td>
+                            <div>
+                                <p class="font-semibold">${user.name || 'User'}</p>
+                                <p class="text-xs text-gray-600">@${user.username || 'username'}</p>
+                            </div>
+                        </td>
+                        <td class="font-bold">${user.balance || 0}</td>
+                        <td>${user.referralCount || 0}</td>
+                        <td>
+                            <span class="badge ${isBlocked ? 'badge-danger' : 'badge-success'}">
+                                ${isBlocked ? 'Blocked' : 'Active'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="flex space-x-2">
+                                <button onclick="toggleBlockUser('${user.id}', ${isBlocked})" 
+                                        class="action-btn ${isBlocked ? 'btn-success' : 'btn-danger'}">
+                                    ${isBlocked ? 'Unblock' : 'Block'}
+                                </button>
+                                <button onclick="viewUserDetails('${user.id}')" 
+                                        class="action-btn btn-info">
+                                    Details
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
                 
-                const filter = document.getElementById('user-filter').value;
-                const search = document.getElementById('user-search').value.toLowerCase();
-                
-                let query = db.collection('users').orderBy('createdAt', 'desc');
-                
-                // Apply filter
-                if (filter === 'active') {
-                    query = query.where('isBlocked', '==', false);
-                } else if (filter === 'blocked') {
-                    query = query.where('isBlocked', '==', true);
-                } else if (filter === 'with_balance') {
-                    query = query.where('balance', '>', 0);
-                }
-                
-                const snapshot = await query.get();
-                
-                if (snapshot.empty) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="text-center py-8 text-gray-500">
-                                No users found
-                            </td>
-                        </tr>
-                    `;
-                    updatePagination(0);
-                    return;
-                }
-                
-                // Apply search and pagination
-                let users = [];
-                snapshot.forEach(doc => {
-                    const user = doc.data();
-                    user.id = doc.id;
-                    
-                    // Apply search filter
-                    if (search) {
-                        const searchStr = `${user.name || ''} ${user.username || ''} ${user.telegramId || ''}`.toLowerCase();
-                        if (!searchStr.includes(search)) {
-                            return;
-                        }
-                    }
-                    
-                    users.push(user);
-                });
-                
-                // Pagination
-                const totalUsers = users.length;
-                const totalPages = Math.ceil(totalUsers / pageSize);
-                const startIdx = (currentPage - 1) * pageSize;
-                const endIdx = Math.min(startIdx + pageSize, totalUsers);
-                const pageUsers = users.slice(startIdx, endIdx);
-                
-                // Update table
-                tbody.innerHTML = '';
-                
-                pageUsers.forEach(user => {
-                    const isBlocked = user.isBlocked || false;
-                    
-                    const row = `
-                        <tr>
-                            <td class="font-mono text-sm">${user.telegramId || user.id.substring(8, 16)}</td>
-                            <td>
-                                <div>
-                                    <p class="font-semibold">${user.name || 'User'}</p>
-                                    <p class="text-xs text-gray-600">@${user.username || 'username'}</p>
-                                </div>
-                            </td>
-                            <td class="font-bold">${user.balance || 0}</td>
-                            <td>${user.referralCount || 0}</td>
-                            <td>
-                                <span class="badge ${isBlocked ? 'badge-danger' : 'badge-success'}">
-                                    ${isBlocked ? 'Blocked' : 'Active'}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="flex space-x-2">
-                                    <button onclick="toggleBlockUser('${user.id}', ${isBlocked})" 
-                                            class="action-btn ${isBlocked ? 'btn-success' : 'btn-danger'}">
-                                        ${isBlocked ? 'Unblock' : 'Block'}
-                                    </button>
-                                    <button onclick="viewUserDetails('${user.id}')" 
-                                            class="action-btn btn-info">
-                                        Details
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    
-                    tbody.innerHTML += row;
-                });
-                
-                // Update pagination
-                updatePagination(totalUsers);
-                
-            } catch (error) {
-                console.error('Load users error:', error);
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-red-500">
-                            Error loading users
-                        </td>
-                    </tr>
-                `;
-            }
+                tbody.innerHTML += row;
+            });
         }
         
-        function updatePagination(totalUsers) {
-            const start = ((currentPage - 1) * pageSize) + 1;
-            const end = Math.min(currentPage * pageSize, totalUsers);
-            
-            document.getElementById('user-start').textContent = start;
-            document.getElementById('user-end').textContent = end;
-            document.getElementById('user-total').textContent = totalUsers;
-            
-            document.getElementById('user-prev').disabled = currentPage === 1;
-            document.getElementById('user-next').disabled = end >= totalUsers;
-            
-            const pageNumber = document.querySelector('.page-number');
-            if (pageNumber) {
-                pageNumber.textContent = currentPage;
-            }
-        }
-        
-        function searchUsers() {
-            currentPage = 1;
-            loadUsers();
-        }
-        
-        async function toggleBlockUser(userId, isBlocked) {
+        function toggleBlockUser(userId, isBlocked) {
             const action = isBlocked ? 'unblock' : 'block';
             
-            const confirmed = await showConfirm(
+            showConfirm(
                 'Confirm Action',
                 `Are you sure you want to ${action} this user?`,
                 'alert-triangle'
-            );
-            
-            if (!confirmed) return;
-            
-            try {
-                await db.collection('users').doc(userId).update({
-                    isBlocked: !isBlocked
-                });
-                
-                showAlert('Success', `User ${action}ed successfully`);
-                loadUsers();
-                
-            } catch (error) {
-                console.error('Toggle block error:', error);
-                showAlert('Error', 'Failed to update user');
-            }
+            ).then(confirmed => {
+                if (confirmed) {
+                    const userIndex = usersData.findIndex(u => u.id === userId);
+                    if (userIndex !== -1) {
+                        usersData[userIndex].isBlocked = !isBlocked;
+                        loadUsers();
+                        showAlert('Success', `User ${action}ed successfully`);
+                    }
+                }
+            });
         }
         
-        async function loadWithdrawals() {
-            try {
-                const tbody = document.getElementById('withdrawals-table-body');
+        function loadWithdrawals() {
+            const tbody = document.getElementById('withdrawals-table-body');
+            
+            if (withdrawalsData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-8">
-                            <div class="loader mx-auto"></div>
-                            <p class="text-gray-500 mt-4">Loading withdrawals...</p>
+                        <td colspan="7" class="text-center py-8 text-gray-500">
+                            No withdrawal requests found
                         </td>
                     </tr>
                 `;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            withdrawalsData.forEach(withdrawal => {
+                const date = withdrawal.requestedAt.toLocaleDateString();
+                const status = withdrawal.status;
+                const id = withdrawal.id.substring(0, 8);
                 
-                const filter = document.getElementById('withdrawal-filter').value;
-                let query = db.collection('withdrawals').orderBy('requestedAt', 'desc');
-                
-                if (filter !== 'all') {
-                    query = query.where('status', '==', filter);
+                let statusBadge = '<span class="badge badge-warning">Pending</span>';
+                if (status === 'approved') {
+                    statusBadge = '<span class="badge badge-success">Approved</span>';
+                } else if (status === 'rejected') {
+                    statusBadge = '<span class="badge badge-danger">Rejected</span>';
                 }
                 
-                const snapshot = await query.limit(50).get();
-                
-                if (snapshot.empty) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="text-center py-8 text-gray-500">
-                                No withdrawal requests found
-                            </td>
-                        </tr>
+                let actions = '';
+                if (status === 'pending') {
+                    actions = `
+                        <div class="flex space-x-2">
+                            <button onclick="approveWithdrawal('${withdrawal.id}')" 
+                                    class="action-btn btn-success">
+                                Approve
+                            </button>
+                            <button onclick="rejectWithdrawal('${withdrawal.id}')" 
+                                    class="action-btn btn-danger">
+                                Reject
+                            </button>
+                        </div>
                     `;
-                    return;
+                } else {
+                    actions = '<span class="text-gray-500 text-sm">Completed</span>';
                 }
                 
-                tbody.innerHTML = '';
-                
-                snapshot.forEach(doc => {
-                    const withdrawal = doc.data();
-                    const date = withdrawal.requestedAt?.toDate?.().toLocaleDateString() || 'Recently';
-                    const status = withdrawal.status;
-                    const id = doc.id.substring(0, 8);
-                    
-                    let statusBadge = '<span class="badge badge-warning">Pending</span>';
-                    if (status === 'approved') {
-                        statusBadge = '<span class="badge badge-success">Approved</span>';
-                    } else if (status === 'rejected') {
-                        statusBadge = '<span class="badge badge-danger">Rejected</span>';
-                    }
-                    
-                    let actions = '';
-                    if (status === 'pending') {
-                        actions = `
-                            <div class="flex space-x-2">
-                                <button onclick="approveWithdrawal('${doc.id}')" 
-                                        class="action-btn btn-success">
-                                    Approve
-                                </button>
-                                <button onclick="rejectWithdrawal('${doc.id}')" 
-                                        class="action-btn btn-danger">
-                                    Reject
-                                </button>
-                            </div>
-                        `;
-                    } else {
-                        actions = '<span class="text-gray-500 text-sm">Completed</span>';
-                    }
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="font-mono text-sm">${id}</td>
-                            <td>
-                                <p class="font-semibold">${withdrawal.userName || 'User'}</p>
-                                <p class="text-xs text-gray-600">${withdrawal.userTelegramId || 'N/A'}</p>
-                            </td>
-                            <td class="font-bold">${withdrawal.amount}</td>
-                            <td class="font-mono text-xs truncate max-w-xs">${withdrawal.paymentDetail || 'N/A'}</td>
-                            <td>${date}</td>
-                            <td>${statusBadge}</td>
-                            <td>${actions}</td>
-                        </tr>
-                    `;
-                });
-                
-            } catch (error) {
-                console.error('Load withdrawals error:', error);
-                tbody.innerHTML = `
+                tbody.innerHTML += `
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-red-500">
-                            Error loading withdrawals
+                        <td class="font-mono text-sm">${id}</td>
+                        <td>
+                            <p class="font-semibold">${withdrawal.userName || 'User'}</p>
+                            <p class="text-xs text-gray-600">${withdrawal.userTelegramId || 'N/A'}</p>
                         </td>
+                        <td class="font-bold">${withdrawal.amount}</td>
+                        <td class="font-mono text-xs truncate max-w-xs">${withdrawal.paymentDetail || 'N/A'}</td>
+                        <td>${date}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actions}</td>
                     </tr>
                 `;
-            }
+            });
         }
         
-        async function approveWithdrawal(withdrawalId) {
-            const confirmed = await showConfirm(
+        function approveWithdrawal(withdrawalId) {
+            showConfirm(
                 'Approve Withdrawal',
                 'Are you sure you want to approve this withdrawal?',
                 'check-circle'
-            );
-            
-            if (!confirmed) return;
-            
-            try {
-                await db.collection('withdrawals').doc(withdrawalId).update({
-                    status: 'approved',
-                    processedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    processedBy: currentAdmin.uid
-                });
-                
-                showAlert('Success', 'Withdrawal approved successfully');
-                loadWithdrawals();
-                loadDashboardData();
-                
-            } catch (error) {
-                console.error('Approve withdrawal error:', error);
-                showAlert('Error', 'Failed to approve withdrawal');
-            }
+            ).then(confirmed => {
+                if (confirmed) {
+                    const withdrawalIndex = withdrawalsData.findIndex(w => w.id === withdrawalId);
+                    if (withdrawalIndex !== -1) {
+                        withdrawalsData[withdrawalIndex].status = 'approved';
+                        withdrawalsData[withdrawalIndex].processedAt = new Date();
+                        loadWithdrawals();
+                        loadDashboardData();
+                        showAlert('Success', 'Withdrawal approved successfully');
+                    }
+                }
+            });
         }
         
-        async function rejectWithdrawal(withdrawalId) {
-            const confirmed = await showConfirm(
+        function rejectWithdrawal(withdrawalId) {
+            showConfirm(
                 'Reject Withdrawal',
                 'Are you sure you want to reject this withdrawal?',
                 'x-circle'
-            );
-            
-            if (!confirmed) return;
-            
-            try {
-                const withdrawalDoc = await db.collection('withdrawals').doc(withdrawalId).get();
-                const withdrawalData = withdrawalDoc.data();
-                
-                // Refund coins to user
-                if (withdrawalData.userId) {
-                    await db.collection('users').doc(withdrawalData.userId).update({
-                        balance: firebase.firestore.FieldValue.increment(withdrawalData.amount)
-                    });
+            ).then(confirmed => {
+                if (confirmed) {
+                    const withdrawalIndex = withdrawalsData.findIndex(w => w.id === withdrawalId);
+                    if (withdrawalIndex !== -1) {
+                        withdrawalsData[withdrawalIndex].status = 'rejected';
+                        withdrawalsData[withdrawalIndex].processedAt = new Date();
+                        loadWithdrawals();
+                        loadDashboardData();
+                        showAlert('Success', 'Withdrawal rejected');
+                    }
                 }
-                
-                // Update withdrawal status
-                await db.collection('withdrawals').doc(withdrawalId).update({
-                    status: 'rejected',
-                    processedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    processedBy: currentAdmin.uid
-                });
-                
-                showAlert('Success', 'Withdrawal rejected and coins refunded');
-                loadWithdrawals();
-                loadDashboardData();
-                
-            } catch (error) {
-                console.error('Reject withdrawal error:', error);
-                showAlert('Error', 'Failed to reject withdrawal');
-            }
+            });
         }
         
-        async function loadTasksAdmin() {
-            try {
-                const tasksDiv = document.getElementById('tasks-list-admin');
-                tasksDiv.innerHTML = '<div class="text-center py-8"><div class="loader mx-auto"></div><p class="text-gray-500 mt-4">Loading tasks...</p></div>';
-                
-                const snapshot = await db.collection('tasks')
-                    .where('active', '==', true)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                
-                if (snapshot.empty) {
-                    tasksDiv.innerHTML = '<p class="text-gray-500 text-center">No active tasks</p>';
-                    return;
-                }
-                
-                tasksDiv.innerHTML = '';
-                
-                snapshot.forEach(doc => {
-                    const task = doc.data();
-                    const taskId = doc.id;
-                    
-                    tasksDiv.innerHTML += `
-                        <div class="p-4 border rounded-lg hover:bg-gray-50">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3 mb-2">
-                                        <span class="text-2xl">${task.icon || '📢'}</span>
-                                        <div>
-                                            <h4 class="font-bold">${task.title}</h4>
-                                            <p class="text-sm text-gray-600">${task.description}</p>
-                                        </div>
-                                    </div>
-                                    ${task.link ? `
-                                        <div class="flex items-center space-x-2 text-sm text-blue-600">
-                                            <i data-lucide="link" class="w-4 h-4"></i>
-                                            <a href="${task.link}" target="_blank" class="hover:underline">
-                                                ${task.linkText || task.link}
-                                            </a>
-                                        </div>
-                                    ` : ''}
-                                    <div class="mt-2">
-                                        <span class="badge badge-info">+${task.reward} coins</span>
-                                        <span class="text-xs text-gray-500 ml-2">ID: ${taskId.substring(0, 8)}</span>
+        function loadTasksAdmin() {
+            const tasksDiv = document.getElementById('tasks-list-admin');
+            
+            if (tasksData.length === 0) {
+                tasksDiv.innerHTML = '<p class="text-gray-500 text-center">No tasks created yet</p>';
+                return;
+            }
+            
+            tasksDiv.innerHTML = '';
+            
+            tasksData.forEach(task => {
+                tasksDiv.innerHTML += `
+                    <div class="p-4 border rounded-lg hover:bg-gray-50">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <span class="text-2xl">${task.icon || '📢'}</span>
+                                    <div>
+                                        <h4 class="font-bold">${task.title}</h4>
+                                        <p class="text-sm text-gray-600">${task.description}</p>
                                     </div>
                                 </div>
-                                <div class="flex space-x-2">
-                                    <button onclick="editTask('${taskId}')" 
-                                            class="action-btn btn-warning">
-                                        Edit
-                                    </button>
-                                    <button onclick="deleteTask('${taskId}')" 
-                                            class="action-btn btn-danger">
-                                        Delete
-                                    </button>
+                                ${task.link ? `
+                                    <div class="flex items-center space-x-2 text-sm text-blue-600">
+                                        <i data-lucide="link" class="w-4 h-4"></i>
+                                        <a href="${task.link}" target="_blank" class="hover:underline">
+                                            ${task.linkText || task.link}
+                                        </a>
+                                    </div>
+                                ` : ''}
+                                <div class="mt-2">
+                                    <span class="badge badge-info">+${task.reward} coins</span>
+                                    <span class="text-xs text-gray-500 ml-2">ID: ${task.id.substring(0, 8)}</span>
                                 </div>
                             </div>
+                            <div class="flex space-x-2">
+                                <button onclick="editTask('${task.id}')" 
+                                        class="action-btn btn-warning">
+                                    Edit
+                                </button>
+                                <button onclick="deleteTask('${task.id}')" 
+                                        class="action-btn btn-danger">
+                                    Delete
+                                </button>
+                            </div>
                         </div>
-                    `;
-                });
-                
-            } catch (error) {
-                console.error('Load tasks error:', error);
-                document.getElementById('tasks-list-admin').innerHTML = '<p class="text-red-500 text-center">Error loading tasks</p>';
-            }
+                    </div>
+                `;
+            });
         }
         
-        async function createNewTask() {
+        function createNewTask() {
             const title = document.getElementById('task-title').value;
             const description = document.getElementById('task-description').value;
             const reward = parseInt(document.getElementById('task-reward').value);
@@ -1775,128 +1634,95 @@
                 return;
             }
             
-            try {
-                await db.collection('tasks').add({
-                    title: title,
-                    description: description || '',
-                    reward: reward,
-                    link: link || null,
-                    linkText: linkText || 'Click to join',
-                    icon: icon || '📢',
-                    active: true,
-                    timesCompleted: 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Clear form
-                document.getElementById('task-title').value = '';
-                document.getElementById('task-description').value = '';
-                document.getElementById('task-reward').value = '100';
-                document.getElementById('task-link').value = '';
-                document.getElementById('task-link-text').value = 'Click to join';
-                document.getElementById('task-icon').value = '📢';
-                
-                showAlert('Success', 'Task created successfully');
-                loadTasksAdmin();
-                
-            } catch (error) {
-                console.error('Create task error:', error);
-                showAlert('Error', 'Failed to create task');
-            }
+            const newTask = {
+                id: `task_${Date.now()}_${tasksData.length}`,
+                title: title,
+                description: description || '',
+                reward: reward,
+                link: link || null,
+                linkText: linkText || 'Click to join',
+                icon: icon || '📢',
+                active: true,
+                createdAt: new Date()
+            };
+            
+            tasksData.push(newTask);
+            
+            // Clear form
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-description').value = '';
+            document.getElementById('task-reward').value = '100';
+            document.getElementById('task-link').value = '';
+            document.getElementById('task-link-text').value = 'Click to join';
+            document.getElementById('task-icon').value = '📢';
+            
+            showAlert('Success', 'Task created successfully');
+            loadTasksAdmin();
         }
         
-        async function deleteTask(taskId) {
-            const confirmed = await showConfirm(
+        function deleteTask(taskId) {
+            showConfirm(
                 'Delete Task',
                 'Are you sure you want to delete this task?',
                 'trash-2'
-            );
-            
-            if (!confirmed) return;
-            
-            try {
-                await db.collection('tasks').doc(taskId).delete();
-                showAlert('Success', 'Task deleted successfully');
-                loadTasksAdmin();
-                
-            } catch (error) {
-                console.error('Delete task error:', error);
-                showAlert('Error', 'Failed to delete task');
-            }
-        }
-        
-        async function loadGiftCodesAdmin() {
-            try {
-                const tbody = document.getElementById('giftcodes-table-body');
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-8">
-                            <div class="loader mx-auto"></div>
-                            <p class="text-gray-500 mt-4">Loading gift codes...</p>
-                        </td>
-                    </tr>
-                `;
-                
-                const snapshot = await db.collection('gift_codes')
-                    .orderBy('createdAt', 'desc')
-                    .limit(20)
-                    .get();
-                
-                if (snapshot.empty) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="text-center py-8 text-gray-500">
-                                No gift codes found
-                            </td>
-                        </tr>
-                    `;
-                    return;
+            ).then(confirmed => {
+                if (confirmed) {
+                    const taskIndex = tasksData.findIndex(t => t.id === taskId);
+                    if (taskIndex !== -1) {
+                        tasksData.splice(taskIndex, 1);
+                        loadTasksAdmin();
+                        showAlert('Success', 'Task deleted successfully');
+                    }
                 }
-                
-                tbody.innerHTML = '';
-                
-                snapshot.forEach(doc => {
-                    const gift = doc.data();
-                    const expiry = gift.expiryDate ? new Date(gift.expiryDate).toLocaleDateString() : 'Never';
-                    const timesUsed = gift.timesUsed || 0;
-                    const usageLimit = gift.usageLimit || '∞';
-                    const isExpired = gift.expiryDate && new Date(gift.expiryDate) < new Date();
-                    const isActive = gift.active && !isExpired && (usageLimit === '∞' || timesUsed < usageLimit);
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="font-mono font-bold">${gift.code}</td>
-                            <td class="font-bold">${gift.coins}</td>
-                            <td>${timesUsed}/${usageLimit}</td>
-                            <td>${expiry}</td>
-                            <td>
-                                <span class="badge ${isActive ? 'badge-success' : 'badge-danger'}">
-                                    ${isActive ? 'Active' : 'Inactive'}
-                                </span>
-                            </td>
-                            <td>
-                                <button onclick="deactivateGiftCode('${doc.id}')" 
-                                        class="action-btn btn-danger">
-                                    Deactivate
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-            } catch (error) {
-                console.error('Load gift codes error:', error);
+            });
+        }
+        
+        function loadGiftCodesAdmin() {
+            const tbody = document.getElementById('giftcodes-table-body');
+            
+            if (giftCodesData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-8 text-red-500">
-                            Error loading gift codes
+                        <td colspan="6" class="text-center py-8 text-gray-500">
+                            No gift codes found
                         </td>
                     </tr>
                 `;
+                return;
             }
+            
+            tbody.innerHTML = '';
+            
+            giftCodesData.forEach(gift => {
+                const expiry = gift.expiryDate ? gift.expiryDate.toLocaleDateString() : 'Never';
+                const timesUsed = gift.timesUsed || 0;
+                const usageLimit = gift.usageLimit || '∞';
+                const isExpired = gift.expiryDate && gift.expiryDate < new Date();
+                const isActive = gift.active && !isExpired && (usageLimit === '∞' || timesUsed < usageLimit);
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono font-bold">${gift.code}</td>
+                        <td class="font-bold">${gift.coins}</td>
+                        <td>${timesUsed}/${usageLimit}</td>
+                        <td>${expiry}</td>
+                        <td>
+                            <span class="badge ${isActive ? 'badge-success' : 'badge-danger'}">
+                                ${isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td>
+                            <button onclick="deactivateGiftCode('${gift.id}')" 
+                                    class="action-btn btn-danger">
+                                Deactivate
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
         
-        async function generateGiftCode() {
+        function generateGiftCode() {
             const coins = parseInt(document.getElementById('gift-coins').value);
             const usageLimit = parseInt(document.getElementById('gift-usage-limit').value) || 0;
             const expiryDate = document.getElementById('gift-expiry').value;
@@ -1913,59 +1739,44 @@
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             
-            try {
-                // Check if code exists
-                const checkSnapshot = await db.collection('gift_codes')
-                    .where('code', '==', code)
-                    .get();
-                
-                if (!checkSnapshot.empty) {
-                    // Regenerate if exists
-                    return generateGiftCode();
-                }
-                
-                // Create gift code
-                await db.collection('gift_codes').add({
-                    code: code,
-                    coins: coins,
-                    usageLimit: usageLimit || null,
-                    expiryDate: expiryDate || null,
-                    active: true,
-                    timesUsed: 0,
-                    usedBy: [],
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: currentAdmin.uid
-                });
-                
-                // Display generated code
-                const displayDiv = document.getElementById('generated-code-display');
-                displayDiv.innerHTML = `
-                    <div class="text-center">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
-                            <i data-lucide="gift" class="w-8 h-8 text-white"></i>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-2">Gift Code Generated!</p>
-                        <p class="text-3xl font-bold text-gray-900 mb-2">${code}</p>
-                        <p class="text-lg font-semibold text-green-600">${coins} Coins</p>
-                        <div class="mt-4 space-y-1">
-                            <p class="text-sm text-gray-600">Usage: ${usageLimit || 'Unlimited'}</p>
-                            <p class="text-sm text-gray-600">Expiry: ${expiryDate ? new Date(expiryDate).toLocaleDateString() : 'Never'}</p>
-                        </div>
+            const newGiftCode = {
+                id: `gift_${Date.now()}_${giftCodesData.length}`,
+                code: code,
+                coins: coins,
+                usageLimit: usageLimit || null,
+                expiryDate: expiryDate ? new Date(expiryDate) : null,
+                active: true,
+                timesUsed: 0,
+                usedBy: [],
+                createdAt: new Date()
+            };
+            
+            giftCodesData.push(newGiftCode);
+            
+            // Display generated code
+            const displayDiv = document.getElementById('generated-code-display');
+            displayDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
+                        <i data-lucide="gift" class="w-8 h-8 text-white"></i>
                     </div>
-                `;
-                
-                // Clear form
-                document.getElementById('gift-coins').value = '500';
-                document.getElementById('gift-usage-limit').value = '0';
-                document.getElementById('gift-expiry').value = '';
-                
-                showAlert('Success', 'Gift code generated successfully');
-                loadGiftCodesAdmin();
-                
-            } catch (error) {
-                console.error('Generate gift code error:', error);
-                showAlert('Error', 'Failed to generate gift code');
-            }
+                    <p class="text-sm text-gray-600 mb-2">Gift Code Generated!</p>
+                    <p class="text-3xl font-bold text-gray-900 mb-2">${code}</p>
+                    <p class="text-lg font-semibold text-green-600">${coins} Coins</p>
+                    <div class="mt-4 space-y-1">
+                        <p class="text-sm text-gray-600">Usage: ${usageLimit || 'Unlimited'}</p>
+                        <p class="text-sm text-gray-600">Expiry: ${expiryDate ? new Date(expiryDate).toLocaleDateString() : 'Never'}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Clear form
+            document.getElementById('gift-coins').value = '500';
+            document.getElementById('gift-usage-limit').value = '0';
+            document.getElementById('gift-expiry').value = '';
+            
+            showAlert('Success', 'Gift code generated successfully');
+            loadGiftCodesAdmin();
         }
         
         function copyGiftCode() {
@@ -2005,73 +1816,54 @@
             }
         }
         
-        async function deactivateGiftCode(giftId) {
-            const confirmed = await showConfirm(
+        function deactivateGiftCode(giftId) {
+            showConfirm(
                 'Deactivate Gift Code',
                 'Are you sure you want to deactivate this gift code?',
                 'x-circle'
-            );
-            
-            if (!confirmed) return;
-            
-            try {
-                await db.collection('gift_codes').doc(giftId).update({
-                    active: false
-                });
-                
-                showAlert('Success', 'Gift code deactivated');
-                loadGiftCodesAdmin();
-                
-            } catch (error) {
-                console.error('Deactivate gift code error:', error);
-                showAlert('Error', 'Failed to deactivate gift code');
-            }
+            ).then(confirmed => {
+                if (confirmed) {
+                    const giftIndex = giftCodesData.findIndex(g => g.id === giftId);
+                    if (giftIndex !== -1) {
+                        giftCodesData[giftIndex].active = false;
+                        loadGiftCodesAdmin();
+                        showAlert('Success', 'Gift code deactivated');
+                    }
+                }
+            });
         }
         
         function refreshGiftCodes() {
             loadGiftCodesAdmin();
         }
         
-        async function loadNotificationsAdmin() {
-            try {
-                const recentDiv = document.getElementById('recent-notifications');
-                recentDiv.innerHTML = '<div class="text-center py-8"><div class="loader mx-auto"></div><p class="text-gray-500 mt-4">Loading...</p></div>';
-                
-                const snapshot = await db.collection('notifications')
-                    .orderBy('createdAt', 'desc')
-                    .limit(5)
-                    .get();
-                
-                if (snapshot.empty) {
-                    recentDiv.innerHTML = '<p class="text-gray-500 text-center">No notifications sent</p>';
-                    return;
-                }
-                
-                recentDiv.innerHTML = '';
-                
-                snapshot.forEach(doc => {
-                    const notification = doc.data();
-                    const date = notification.createdAt?.toDate?.().toLocaleString() || 'Recently';
-                    
-                    recentDiv.innerHTML += `
-                        <div class="p-4 border-l-4 border-blue-500 bg-gray-50 rounded-r-lg">
-                            <h4 class="font-bold text-gray-900">${notification.title}</h4>
-                            <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
-                            <div class="flex items-center justify-between mt-2">
-                                <span class="text-xs text-gray-500">${date}</span>
-                                <span class="text-xs text-gray-500">${notification.target || 'All users'}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-            } catch (error) {
-                console.error('Load notifications error:', error);
-                document.getElementById('recent-notifications').innerHTML = '<p class="text-red-500 text-center">Error loading notifications</p>';
+        function loadNotificationsAdmin() {
+            const recentDiv = document.getElementById('recent-notifications');
+            
+            if (notificationsData.length === 0) {
+                recentDiv.innerHTML = '<p class="text-gray-500 text-center">No notifications sent</p>';
+                return;
             }
+            
+            recentDiv.innerHTML = '';
+            
+            notificationsData.forEach(notification => {
+                const date = notification.createdAt.toLocaleString();
+                
+                recentDiv.innerHTML += `
+                    <div class="p-4 border-l-4 border-blue-500 bg-gray-50 rounded-r-lg">
+                        <h4 class="font-bold text-gray-900">${notification.title}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-xs text-gray-500">${date}</span>
+                            <span class="text-xs text-gray-500">${notification.target || 'All users'}</span>
+                        </div>
+                    </div>
+                `;
+            });
         }
         
-        async function sendNotificationToUsers() {
+        function sendNotificationToUsers() {
             const title = document.getElementById('notification-title').value;
             const message = document.getElementById('notification-message').value;
             const target = document.getElementById('notification-target').value;
@@ -2081,57 +1873,42 @@
                 return;
             }
             
-            try {
-                await db.collection('notifications').add({
-                    title: title,
-                    message: message,
-                    target: target,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    sentBy: currentAdmin.uid
-                });
-                
-                // Clear form
-                document.getElementById('notification-title').value = '';
-                document.getElementById('notification-message').value = '';
-                
-                showAlert('Success', 'Notification sent successfully');
-                loadNotificationsAdmin();
-                
-            } catch (error) {
-                console.error('Send notification error:', error);
-                showAlert('Error', 'Failed to send notification');
-            }
+            const newNotification = {
+                id: `notif_${Date.now()}_${notificationsData.length}`,
+                title: title,
+                message: message,
+                target: target,
+                createdAt: new Date()
+            };
+            
+            notificationsData.unshift(newNotification); // Add to beginning
+            
+            // Clear form
+            document.getElementById('notification-title').value = '';
+            document.getElementById('notification-message').value = '';
+            
+            showAlert('Success', 'Notification sent successfully');
+            loadNotificationsAdmin();
         }
         
-        async function loadSettingsAdmin() {
-            try {
-                const doc = await db.collection('config').doc('main').get();
-                
-                if (doc.exists) {
-                    appConfig = doc.data();
-                    
-                    // Set values
-                    document.getElementById('min-withdrawal').value = appConfig.minWithdrawal || 5000;
-                    document.getElementById('daily-ad-limit').value = appConfig.dailyAdLimit || 20;
-                    document.getElementById('min-referrals').value = appConfig.minReferralsForWithdrawal || 1;
-                    document.getElementById('referral-bonus').value = appConfig.referralBonus || 100;
-                    
-                    document.getElementById('coin-value-coins').value = appConfig.coinValueCoins || 1000;
-                    document.getElementById('coin-value-inr').value = appConfig.coinValueInr || 10;
-                    
-                    document.getElementById('starting-balance').value = appConfig.startingBalance || 100;
-                    document.getElementById('ad-reward-coins').value = appConfig.adCoins || 50;
-                    document.getElementById('special-ad-coins').value = appConfig.specialAdCoins || 100;
-                }
-                
-            } catch (error) {
-                console.error('Load settings error:', error);
-            }
+        function loadSettingsAdmin() {
+            // Set current values
+            document.getElementById('min-withdrawal').value = appConfig.minWithdrawal;
+            document.getElementById('daily-ad-limit').value = appConfig.dailyAdLimit;
+            document.getElementById('min-referrals').value = appConfig.minReferralsForWithdrawal;
+            document.getElementById('referral-bonus').value = appConfig.referralBonus;
+            
+            document.getElementById('coin-value-coins').value = appConfig.coinValueCoins;
+            document.getElementById('coin-value-inr').value = appConfig.coinValueInr;
+            
+            document.getElementById('starting-balance').value = appConfig.startingBalance;
+            document.getElementById('ad-reward-coins').value = appConfig.adCoins;
+            document.getElementById('special-ad-coins').value = appConfig.specialAdCoins;
         }
         
-        async function saveSettings() {
+        function saveSettings() {
             try {
-                const config = {
+                appConfig = {
                     minWithdrawal: parseInt(document.getElementById('min-withdrawal').value) || 5000,
                     dailyAdLimit: parseInt(document.getElementById('daily-ad-limit').value) || 20,
                     minReferralsForWithdrawal: parseInt(document.getElementById('min-referrals').value) || 1,
@@ -2140,13 +1917,11 @@
                     coinValueInr: parseInt(document.getElementById('coin-value-inr').value) || 10,
                     startingBalance: parseInt(document.getElementById('starting-balance').value) || 100,
                     adCoins: parseInt(document.getElementById('ad-reward-coins').value) || 50,
-                    specialAdCoins: parseInt(document.getElementById('special-ad-coins').value) || 100,
-                    paymentMethods: ['USDT (Polygon)'],
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    specialAdCoins: parseInt(document.getElementById('special-ad-coins').value) || 100
                 };
                 
-                await db.collection('config').doc('main').set(config, { merge: true });
-                appConfig = config;
+                // Save to localStorage
+                localStorage.setItem('cashreward_config', JSON.stringify(appConfig));
                 
                 showAlert('Success', 'Settings saved successfully');
                 
@@ -2157,14 +1932,32 @@
         }
         
         function exportWithdrawalsCSV() {
-            // This is a simplified CSV export
             showAlert('Info', 'CSV export feature would be implemented here');
         }
         
         // Modal functions
-        function showAlert(title, message) {
+        function showAlert(title, message, type = 'info') {
             document.getElementById('alert-title').textContent = title;
             document.getElementById('alert-message').textContent = message;
+            
+            // Set icon based on type
+            let icon = 'info';
+            let color = 'blue';
+            
+            if (type === 'success') {
+                icon = 'check-circle';
+                color = 'green';
+            } else if (type === 'warning') {
+                icon = 'alert-triangle';
+                color = 'yellow';
+            } else if (type === 'error') {
+                icon = 'x-circle';
+                color = 'red';
+            }
+            
+            document.getElementById('alert-icon').innerHTML = `<i data-lucide="${icon}" class="w-8 h-8 text-${color}-600"></i>`;
+            lucide.createIcons();
+            
             document.getElementById('alert-modal').classList.remove('hidden');
         }
         
@@ -2176,7 +1969,7 @@
             return new Promise((resolve) => {
                 document.getElementById('confirm-title').textContent = title;
                 document.getElementById('confirm-message').textContent = message;
-                document.getElementById('confirm-icon').innerHTML = `<i data-lucide="${icon}" class="w-8 h-8"></i>`;
+                document.getElementById('confirm-icon').innerHTML = `<i data-lucide="${icon}" class="w-8 h-8 text-yellow-600"></i>`;
                 lucide.createIcons();
                 
                 document.getElementById('confirm-modal').classList.remove('hidden');
@@ -2201,14 +1994,32 @@
         window.deactivateGiftCode = deactivateGiftCode;
         window.refreshGiftCodes = refreshGiftCodes;
         window.navigateTo = navigateTo;
-        window.showCreateTaskModal = () => {}; // Implement if needed
-        window.showGenerateGiftCodeModal = () => {}; // Implement if needed
+        window.showCreateTaskModal = () => {};
+        window.showGenerateGiftCodeModal = () => {};
         window.viewUserDetails = (userId) => {
-            showAlert('User Details', `View details for user: ${userId}`);
+            const user = usersData.find(u => u.id === userId);
+            if (user) {
+                showAlert('User Details', 
+                    `Name: ${user.name}\n` +
+                    `Username: @${user.username}\n` +
+                    `Balance: ${user.balance} coins\n` +
+                    `Referrals: ${user.referralCount}\n` +
+                    `Status: ${user.isBlocked ? 'Blocked' : 'Active'}`);
+            }
         };
         window.editTask = (taskId) => {
-            showAlert('Edit Task', `Edit task: ${taskId}`);
+            showAlert('Edit Task', 'Edit functionality would be implemented here');
         };
+        
+        // Initialize settings from localStorage
+        const savedConfig = localStorage.getItem('cashreward_config');
+        if (savedConfig) {
+            try {
+                appConfig = JSON.parse(savedConfig);
+            } catch (e) {
+                console.error('Failed to load saved config');
+            }
+        }
         
     </script>
 </body>
