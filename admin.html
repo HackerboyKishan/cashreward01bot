@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashReward Admin Panel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #d1d5db;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sidebar a {
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(55, 65, 81, 0.8);
+            transform: translateX(5px);
+        }
+        
+        .sidebar a:hover::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: #ff8c00;
+        }
+        
+        .sidebar a.active {
+            background: rgba(79, 70, 229, 0.9);
+            color: white;
+            border-left-color: #ff8c00;
+            box-shadow: inset 4px 0 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .page {
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            transform: scale(1);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            font-weight: 600;
+            color: #374151;
+            padding: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+        }
+        
+        tr:hover td {
+            background: #f9fafb;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .loader {
+            border: 3px solid rgba(79, 70, 229, 0.1);
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .search-input {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            outline: none;
+        }
+        
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-number {
+            padding: 0.5rem 1rem;
+            background: #4f46e5;
+            color: white;
+            border-radius: 6px;
+        }
+        
+        .filter-select {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+        
+        .filter-select:focus {
+            border-color: #4f46e5;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .status-active {
+            background: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .status-inactive {
+            background: #ef4444;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+        
+        .status-pending {
+            background: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+        
+        .action-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #4f46e5 0%, #ff8c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Card hover effects */
+        .hover-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hover-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Login -->
+    <div id="admin-login-view" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+        <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-2xl">
+            <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
+                    <i data-lucide="shield" class="w-10 h-10 text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">CashReward Admin</h1>
+                <p class="text-gray-600 mt-2">Secure Admin Access</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
+                    <input id="admin-email" type="email" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="admin@cashreward.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input id="admin-password" type="password" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="••••••••">
+                </div>
+                
+                <button id="admin-login-btn" 
+                        class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300">
+                    Sign In to Admin Panel
+                </button>
+            </div>
+            
+            <div class="text-center text-sm text-gray-500">
+                <p>Access restricted to authorized personnel only</p>
+                <p class="mt-1">Admin UID: K7Ennhb6OZZ8d83Dd33piSf6Sq72</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <div class="flex h-screen">
+            <!-- Sidebar -->
+            <aside class="sidebar w-64 flex-shrink-0">
+                <div class="p-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
+                            <i data-lucide="shield" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white">CashReward</h2>
+                            <p class="text-xs text-gray-400">Admin Panel</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="mt-8 px-4">
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="dashboard-page">
+                        <i data-lucide="home" class="inline-block w-5 h-5 mr-3"></i>
+                        Dashboard
+                    </a>
+                    
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="users-page">
+                        <i data-lucide="users" class="inline-block w-5 h-5 mr-3"></i>
+                        User Management
+                    </a>
+                    
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="withdrawals-page">
+                        <i data-lucide="dollar-sign" class="inline-block w-5 h-5 mr-3"></i>
+                        Withdrawal Requests
+                    </a>
+                    
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="tasks-page">
+                        <i data-lucide="check-circle" class="inline-block w-5 h-5 mr-3"></i>
+                        Task Management
+                    </a>
+                    
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="giftcodes-page">
+                        <i data-lucide="gift" class="inline-block w-5 h-5 mr-3"></i>
+                        Gift Codes
+                    </a>
+                    
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="notifications-page">
+                        <i data-lucide="send" class="inline-block w-5 h-5 mr-3"></i>
+                        Notifications
+                    </a>
+                    
+                    <a href="#" class="nav-link block py-3 px-4 rounded-lg mb-2" data-page="settings-page">
+                        <i data-lucide="settings" class="inline-block w-5 h-5 mr-3"></i>
+                        Settings
+                    </a>
+                    
+                    <div class="mt-12 pt-6 border-t border-gray-700">
+                        <a href="#" id="admin-logout-btn" 
+                           class="block py-3 px-4 rounded-lg text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-all">
+                            <i data-lucide="log-out" class="inline-block w-5 h-5 mr-3"></i>
+                            Logout
+                        </a>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-8 overflow-y-auto custom-scrollbar">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="page active">
+                    <h1 class="text-3xl font-bold mb-2 gradient-text">Dashboard Overview</h1>
+                    <p class="text-gray-600 mb-8">Monitor your app performance and statistics</p>
+                    
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Total Users Card -->
+                        <div class="stat-card p-6 hover-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Total Users</p>
+                                    <p id="total-users" class="text-3xl font-bold mt-2">0</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="trending-up" class="w-4 h-4 text-green-500 mr-1"></i>
+                                    <span>Active users today</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pending Withdrawals -->
+                        <div class="stat-card p-6 hover-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Pending Withdrawals</p>
+                                    <p id="pending-withdrawals" class="text-3xl font-bold mt-2">0</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                                    <i data-lucide="dollar-sign" class="w-6 h-6 text-yellow-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-500 mr-1"></i>
+                                    <span>Need approval</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Today's Revenue -->
+                        <div class="stat-card p-6 hover-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Today's Revenue</p>
+                                    <p id="today-revenue" class="text-3xl font-bold mt-2">₹0</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-gray-500 mr-1"></i>
+                                    <span>From ads and tasks</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Tasks -->
+                        <div class="stat-card p-6 hover-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Active Tasks</p>
+                                    <p id="active-tasks" class="text-3xl font-bold mt-2">0</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-6 h-6 text-purple-600"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="zap" class="w-4 h-4 text-purple-500 mr-1"></i>
+                                    <span>Available for users</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Recent Withdrawals -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Recent Withdrawals</h3>
+                            <div id="recent-withdrawals" class="space-y-3">
+                                <div class="text-center py-8">
+                                    <div class="loader mx-auto"></div>
+                                    <p class="text-gray-500 mt-4">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Users -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Recent Users</h3>
+                            <div id="recent-users" class="space-y-3">
+                                <div class="text-center py-8">
+                                    <div class="loader mx-auto"></div>
+                                    <p class="text-gray-500 mt-4">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Page -->
+                <div id="users-page" class="page">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2 gradient-text">User Management</h1>
+                            <p class="text-gray-600">Manage all users and their accounts</p>
+                        </div>
+                        
+                        <div class="flex space-x-3 mt-4 lg:mt-0">
+                            <div class="relative">
+                                <input type="text" id="user-search" 
+                                       class="search-input pl-10 pr-4 py-2 w-full lg:w-64"
+                                       placeholder="Search users...">
+                                <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                            </div>
+                            
+                            <select id="user-filter" class="filter-select">
+                                <option value="all">All Users</option>
+                                <option value="active">Active Only</option>
+                                <option value="blocked">Blocked</option>
+                                <option value="with_balance">With Balance</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Users Table -->
+                    <div class="stat-card overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>Telegram</th>
+                                        <th>Balance</th>
+                                        <th>Referrals</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Users will load here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="flex items-center justify-between p-4 border-t">
+                            <div class="text-sm text-gray-600">
+                                Showing <span id="user-start">0</span>-<span id="user-end">0</span> of <span id="user-total">0</span> users
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="user-prev" class="pagination-btn">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </button>
+                                <span class="page-number">1</span>
+                                <button id="user-next" class="pagination-btn">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdrawals Page -->
+                <div id="withdrawals-page" class="page">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2 gradient-text">Withdrawal Requests</h1>
+                            <p class="text-gray-600">Approve or reject USDT withdrawal requests</p>
+                        </div>
+                        
+                        <div class="flex space-x-3 mt-4 lg:mt-0">
+                            <select id="withdrawal-filter" class="filter-select">
+                                <option value="all">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            
+                            <button onclick="exportWithdrawalsCSV()" class="btn btn-info">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Withdrawals Table -->
+                    <div class="stat-card overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Request ID</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>USDT Address</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="withdrawals-table-body">
+                                    <!-- Withdrawals will load here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Page -->
+                <div id="tasks-page" class="page">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2 gradient-text">Task Management</h1>
+                            <p class="text-gray-600">Create and manage tasks for users</p>
+                        </div>
+                        
+                        <button onclick="showCreateTaskModal()" class="btn btn-success mt-4 lg:mt-0">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            Create New Task
+                        </button>
+                    </div>
+                    
+                    <!-- Tasks Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Task List -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Active Tasks</h3>
+                            <div id="tasks-list-admin" class="space-y-4">
+                                <!-- Tasks will load here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Create Task Form -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Create New Task</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+                                    <input type="text" id="task-title" 
+                                           class="search-input w-full" 
+                                           placeholder="e.g., Join Our Telegram Channel">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                    <textarea id="task-description" rows="3" 
+                                              class="search-input w-full" 
+                                              placeholder="Describe the task..."></textarea>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Reward (Coins)</label>
+                                        <input type="number" id="task-reward" 
+                                               class="search-input w-full" 
+                                               placeholder="100" value="100">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+                                        <input type="text" id="task-icon" 
+                                               class="search-input w-full" 
+                                               placeholder="📢" value="📢">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Telegram Link (Optional)</label>
+                                    <input type="url" id="task-link" 
+                                           class="search-input w-full" 
+                                           placeholder="https://t.me/yourchannel">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Link Text</label>
+                                    <input type="text" id="task-link-text" 
+                                           class="search-input w-full" 
+                                           placeholder="Click to join" value="Click to join">
+                                </div>
+                                
+                                <button onclick="createNewTask()" class="btn btn-success w-full">
+                                    <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+                                    Create Task
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gift Codes Page -->
+                <div id="giftcodes-page" class="page">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2 gradient-text">Gift Code Management</h1>
+                            <p class="text-gray-600">Generate and manage gift codes</p>
+                        </div>
+                        
+                        <button onclick="showGenerateGiftCodeModal()" class="btn btn-warning mt-4 lg:mt-0">
+                            <i data-lucide="gift" class="w-4 h-4 mr-2"></i>
+                            Generate Gift Code
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Generate Form -->
+                        <div class="stat-card p-6 lg:col-span-1">
+                            <h3 class="text-lg font-bold mb-4">Generate Gift Code</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Coins Amount</label>
+                                    <input type="number" id="gift-coins" 
+                                           class="search-input w-full" 
+                                           placeholder="500" value="500">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Usage Limit</label>
+                                    <input type="number" id="gift-usage-limit" 
+                                           class="search-input w-full" 
+                                           placeholder="0 for unlimited" value="0">
+                                    <p class="text-xs text-gray-500 mt-1">0 means unlimited usage</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                                    <input type="date" id="gift-expiry" 
+                                           class="search-input w-full">
+                                    <p class="text-xs text-gray-500 mt-1">Leave empty for no expiry</p>
+                                </div>
+                                
+                                <button onclick="generateGiftCode()" class="btn btn-warning w-full">
+                                    <i data-lucide="sparkles" class="w-4 h-4 mr-2"></i>
+                                    Generate Code
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Generated Code Display -->
+                        <div class="stat-card p-6 lg:col-span-2">
+                            <h3 class="text-lg font-bold mb-4">Generated Code</h3>
+                            <div id="generated-code-display" class="text-center p-8 bg-gray-50 rounded-xl">
+                                <i data-lucide="gift" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Generate a code to see it here</p>
+                            </div>
+                            
+                            <div class="flex justify-center space-x-4 mt-6">
+                                <button onclick="copyGiftCode()" class="btn btn-info">
+                                    <i data-lucide="copy" class="w-4 h-4 mr-2"></i>
+                                    Copy Code
+                                </button>
+                                
+                                <button onclick="shareGiftCodeAdmin()" class="btn btn-primary">
+                                    <i data-lucide="share-2" class="w-4 h-4 mr-2"></i>
+                                    Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gift Codes List -->
+                    <div class="mt-6">
+                        <div class="stat-card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold">Active Gift Codes</h3>
+                                <button onclick="refreshGiftCodes()" class="btn btn-info text-sm">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Coins</th>
+                                            <th>Used</th>
+                                            <th>Expiry</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="giftcodes-table-body">
+                                        <!-- Gift codes will load here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Page -->
+                <div id="notifications-page" class="page">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2 gradient-text">Send Notifications</h1>
+                            <p class="text-gray-600">Send push notifications to all users</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Send Form -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Send Notification</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                    <input type="text" id="notification-title" 
+                                           class="search-input w-full" 
+                                           placeholder="Notification title">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                                    <textarea id="notification-message" rows="4" 
+                                              class="search-input w-full" 
+                                              placeholder="Notification message..."></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Send To</label>
+                                    <select id="notification-target" class="filter-select w-full">
+                                        <option value="all">All Users</option>
+                                        <option value="active">Active Users Only</option>
+                                        <option value="with_balance">Users with Balance</option>
+                                    </select>
+                                </div>
+                                
+                                <button onclick="sendNotificationToUsers()" class="btn btn-primary w-full">
+                                    <i data-lucide="send" class="w-4 h-4 mr-2"></i>
+                                    Send Notification
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Notifications -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Recent Notifications</h3>
+                            <div id="recent-notifications" class="space-y-4">
+                                <!-- Notifications will load here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div id="settings-page" class="page">
+                    <div class="mb-6">
+                        <h1 class="text-3xl font-bold mb-2 gradient-text">App Settings</h1>
+                        <p class="text-gray-600">Configure your app settings</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- General Settings -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">General Settings</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Withdrawal (Coins)</label>
+                                    <input type="number" id="min-withdrawal" 
+                                           class="search-input w-full" 
+                                           value="5000">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Daily Ad Limit</label>
+                                    <input type="number" id="daily-ad-limit" 
+                                           class="search-input w-full" 
+                                           value="20">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Referrals for Withdrawal</label>
+                                    <input type="number" id="min-referrals" 
+                                           class="search-input w-full" 
+                                           value="1">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Referral Bonus (Coins)</label>
+                                    <input type="number" id="referral-bonus" 
+                                           class="search-input w-full" 
+                                           value="100">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Coin & Payment Settings -->
+                        <div class="stat-card p-6">
+                            <h3 class="text-lg font-bold mb-4">Coin & Payment Settings</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Coin Value</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="number" id="coin-value-coins" 
+                                               class="search-input flex-1" 
+                                               value="1000">
+                                        <span class="text-gray-600">Coins = ₹</span>
+                                        <input type="number" id="coin-value-inr" 
+                                               class="search-input flex-1" 
+                                               value="10">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Starting Balance (New Users)</label>
+                                    <input type="number" id="starting-balance" 
+                                           class="search-input w-full" 
+                                           value="100">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Ad Reward Coins</label>
+                                    <input type="number" id="ad-reward-coins" 
+                                           class="search-input w-full" 
+                                           value="50">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Special Ad Reward Coins</label>
+                                    <input type="number" id="special-ad-coins" 
+                                           class="search-input w-full" 
+                                           value="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Save Button -->
+                    <div class="mt-6">
+                        <button onclick="saveSettings()" class="btn btn-success px-8 py-3">
+                            <i data-lucide="save" class="w-5 h-5 mr-2"></i>
+                            Save All Settings
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="alert-modal" class="modal-overlay hidden">
+        <div class="modal-content p-6">
+            <div class="text-center">
+                <div id="alert-icon" class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i data-lucide="info" class="w-8 h-8 text-blue-600"></i>
+                </div>
+                <h3 id="alert-title" class="text-xl font-bold mb-2">Alert</h3>
+                <p id="alert-message" class="text-gray-600 mb-6"></p>
+                <button onclick="closeAlert()" class="btn btn-primary px-6">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content p-6">
+            <div class="text-center">
+                <div id="confirm-icon" class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-600"></i>
+                </div>
+                <h3 id="confirm-title" class="text-xl font-bold mb-2">Confirm Action</h3>
+                <p id="confirm-message" class="text-gray-600 mb-6"></p>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="confirmCancel()" class="btn bg-gray-200 text-gray-800 px-6">
+                        Cancel
+                    </button>
+                    <button onclick="confirmOk()" class="btn btn-danger px-6">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCE29KuB_R6f2HwgFeHa5QS3OeVbzUTDyM",
+            authDomain: "cashreward01bot.firebaseapp.com",
+            projectId: "cashreward01bot",
+            storageBucket: "cashreward01bot.firebasestorage.app",
+            messagingSenderId: "196200872526",
+            appId: "1:196200872526:web:aeb685560be9878d40e11f",
+            databaseURL: "https://cashreward01bot-default-rtdb.firebaseio.com"
+        };
+        
+        // Admin UID
+        const ADMIN_UID = "K7Ennhb6OZZ8d83Dd33piSf6Sq72";
+        
+        // Global variables
+        let currentAdmin = null;
+        let appConfig = {};
+        let currentPage = 1;
+        const pageSize = 10;
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            setupEventListeners();
+            
+            // Check admin login
+            auth.onAuthStateChanged((user) => {
+                if (user && user.uid === ADMIN_UID) {
+                    currentAdmin = user;
+                    showAdminPanel();
+                    loadDashboardData();
+                } else {
+                    showLogin();
+                }
+            });
+        });
+        
+        function setupEventListeners() {
+            // Login
+            document.getElementById('admin-login-btn').addEventListener('click', handleAdminLogin);
+            
+            // Logout
+            document.getElementById('admin-logout-btn').addEventListener('click', handleAdminLogout);
+            
+            // Navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    navigateTo(page);
+                });
+            });
+            
+            // User search
+            document.getElementById('user-search')?.addEventListener('input', searchUsers);
+            document.getElementById('user-filter')?.addEventListener('change', loadUsers);
+            
+            // Withdrawal filter
+            document.getElementById('withdrawal-filter')?.addEventListener('change', loadWithdrawals);
+            
+            // Pagination
+            document.getElementById('user-prev')?.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadUsers();
+                }
+            });
+            
+            document.getElementById('user-next')?.addEventListener('click', () => {
+                currentPage++;
+                loadUsers();
+            });
+        }
+        
+        async function handleAdminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (!email || !password) {
+                showAlert('Error', 'Please enter email and password');
+                return;
+            }
+            
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                
+                if (userCredential.user.uid !== ADMIN_UID) {
+                    await auth.signOut();
+                    showAlert('Access Denied', 'You are not authorized to access this panel');
+                    return;
+                }
+                
+                currentAdmin = userCredential.user;
+                showAdminPanel();
+                loadDashboardData();
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('Login Failed', error.message);
+            }
+        }
+        
+        async function handleAdminLogout() {
+            try {
+                await auth.signOut();
+                showLogin();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+        
+        function showLogin() {
+            document.getElementById('admin-login-view').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+        }
+        
+        function showAdminPanel() {
+            document.getElementById('admin-login-view').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+        }
+        
+        function navigateTo(pageId) {
+            // Update active nav
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.page === pageId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Show page
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            // Load page data
+            switch(pageId) {
+                case 'dashboard-page':
+                    loadDashboardData();
+                    break;
+                case 'users-page':
+                    loadUsers();
+                    break;
+                case 'withdrawals-page':
+                    loadWithdrawals();
+                    break;
+                case 'tasks-page':
+                    loadTasksAdmin();
+                    break;
+                case 'giftcodes-page':
+                    loadGiftCodesAdmin();
+                    break;
+                case 'notifications-page':
+                    loadNotificationsAdmin();
+                    break;
+                case 'settings-page':
+                    loadSettingsAdmin();
+                    break;
+            }
+        }
+        
+        async function loadDashboardData() {
+            try {
+                // Load total users
+                const usersSnapshot = await db.collection('users').get();
+                document.getElementById('total-users').textContent = usersSnapshot.size;
+                
+                // Load pending withdrawals
+                const pendingSnapshot = await db.collection('withdrawals')
+                    .where('status', '==', 'pending')
+                    .get();
+                document.getElementById('pending-withdrawals').textContent = pendingSnapshot.size;
+                
+                // Load today's revenue (calculate from gift redemptions)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const giftSnapshot = await db.collection('gift_redemptions')
+                    .where('redeemedAt', '>=', today)
+                    .get();
+                
+                let totalRevenue = 0;
+                giftSnapshot.forEach(doc => {
+                    const redemption = doc.data();
+                    const coins = redemption.coins || 0;
+                    const inrValue = (coins * (appConfig.coinValueInr || 10)) / (appConfig.coinValueCoins || 1000);
+                    totalRevenue += inrValue;
+                });
+                
+                document.getElementById('today-revenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+                
+                // Load active tasks
+                const tasksSnapshot = await db.collection('tasks')
+                    .where('active', '==', true)
+                    .get();
+                document.getElementById('active-tasks').textContent = tasksSnapshot.size;
+                
+                // Load recent withdrawals
+                await loadRecentWithdrawals();
+                
+                // Load recent users
+                await loadRecentUsers();
+                
+            } catch (error) {
+                console.error('Dashboard error:', error);
+            }
+        }
+        
+        async function loadRecentWithdrawals() {
+            try {
+                const recentDiv = document.getElementById('recent-withdrawals');
+                
+                const snapshot = await db.collection('withdrawals')
+                    .orderBy('requestedAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                if (snapshot.empty) {
+                    recentDiv.innerHTML = '<p class="text-gray-500 text-center">No recent withdrawals</p>';
+                    return;
+                }
+                
+                recentDiv.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const withdrawal = doc.data();
+                    const date = withdrawal.requestedAt?.toDate?.().toLocaleDateString() || 'Recently';
+                    const status = withdrawal.status;
+                    
+                    let statusBadge = '<span class="badge badge-warning">Pending</span>';
+                    if (status === 'approved') {
+                        statusBadge = '<span class="badge badge-success">Approved</span>';
+                    } else if (status === 'rejected') {
+                        statusBadge = '<span class="badge badge-danger">Rejected</span>';
+                    }
+                    
+                    recentDiv.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-semibold">${withdrawal.userName || 'User'}</p>
+                                <p class="text-sm text-gray-600">${withdrawal.amount} coins</p>
+                                <p class="text-xs text-gray-500">${date}</p>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Recent withdrawals error:', error);
+            }
+        }
+        
+        async function loadRecentUsers() {
+            try {
+                const recentDiv = document.getElementById('recent-users');
+                
+                const snapshot = await db.collection('users')
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                if (snapshot.empty) {
+                    recentDiv.innerHTML = '<p class="text-gray-500 text-center">No recent users</p>';
+                    return;
+                }
+                
+                recentDiv.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const date = user.createdAt?.toDate?.().toLocaleDateString() || 'Recently';
+                    
+                    recentDiv.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">${user.name || 'User'}</p>
+                                    <p class="text-sm text-gray-600">${user.balance || 0} coins</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500">${date}</p>
+                        </div>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Recent users error:', error);
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8">
+                            <div class="loader mx-auto"></div>
+                            <p class="text-gray-500 mt-4">Loading users...</p>
+                        </td>
+                    </tr>
+                `;
+                
+                const filter = document.getElementById('user-filter').value;
+                const search = document.getElementById('user-search').value.toLowerCase();
+                
+                let query = db.collection('users').orderBy('createdAt', 'desc');
+                
+                // Apply filter
+                if (filter === 'active') {
+                    query = query.where('isBlocked', '==', false);
+                } else if (filter === 'blocked') {
+                    query = query.where('isBlocked', '==', true);
+                } else if (filter === 'with_balance') {
+                    query = query.where('balance', '>', 0);
+                }
+                
+                const snapshot = await query.get();
+                
+                if (snapshot.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-gray-500">
+                                No users found
+                            </td>
+                        </tr>
+                    `;
+                    updatePagination(0);
+                    return;
+                }
+                
+                // Apply search and pagination
+                let users = [];
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    user.id = doc.id;
+                    
+                    // Apply search filter
+                    if (search) {
+                        const searchStr = `${user.name || ''} ${user.username || ''} ${user.telegramId || ''}`.toLowerCase();
+                        if (!searchStr.includes(search)) {
+                            return;
+                        }
+                    }
+                    
+                    users.push(user);
+                });
+                
+                // Pagination
+                const totalUsers = users.length;
+                const totalPages = Math.ceil(totalUsers / pageSize);
+                const startIdx = (currentPage - 1) * pageSize;
+                const endIdx = Math.min(startIdx + pageSize, totalUsers);
+                const pageUsers = users.slice(startIdx, endIdx);
+                
+                // Update table
+                tbody.innerHTML = '';
+                
+                pageUsers.forEach(user => {
+                    const isBlocked = user.isBlocked || false;
+                    
+                    const row = `
+                        <tr>
+                            <td class="font-mono text-sm">${user.telegramId || user.id.substring(8, 16)}</td>
+                            <td>
+                                <div>
+                                    <p class="font-semibold">${user.name || 'User'}</p>
+                                    <p class="text-xs text-gray-600">@${user.username || 'username'}</p>
+                                </div>
+                            </td>
+                            <td class="font-bold">${user.balance || 0}</td>
+                            <td>${user.referralCount || 0}</td>
+                            <td>
+                                <span class="badge ${isBlocked ? 'badge-danger' : 'badge-success'}">
+                                    ${isBlocked ? 'Blocked' : 'Active'}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex space-x-2">
+                                    <button onclick="toggleBlockUser('${user.id}', ${isBlocked})" 
+                                            class="action-btn ${isBlocked ? 'btn-success' : 'btn-danger'}">
+                                        ${isBlocked ? 'Unblock' : 'Block'}
+                                    </button>
+                                    <button onclick="viewUserDetails('${user.id}')" 
+                                            class="action-btn btn-info">
+                                        Details
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    tbody.innerHTML += row;
+                });
+                
+                // Update pagination
+                updatePagination(totalUsers);
+                
+            } catch (error) {
+                console.error('Load users error:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-red-500">
+                            Error loading users
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function updatePagination(totalUsers) {
+            const start = ((currentPage - 1) * pageSize) + 1;
+            const end = Math.min(currentPage * pageSize, totalUsers);
+            
+            document.getElementById('user-start').textContent = start;
+            document.getElementById('user-end').textContent = end;
+            document.getElementById('user-total').textContent = totalUsers;
+            
+            document.getElementById('user-prev').disabled = currentPage === 1;
+            document.getElementById('user-next').disabled = end >= totalUsers;
+            
+            const pageNumber = document.querySelector('.page-number');
+            if (pageNumber) {
+                pageNumber.textContent = currentPage;
+            }
+        }
+        
+        function searchUsers() {
+            currentPage = 1;
+            loadUsers();
+        }
+        
+        async function toggleBlockUser(userId, isBlocked) {
+            const action = isBlocked ? 'unblock' : 'block';
+            
+            const confirmed = await showConfirm(
+                'Confirm Action',
+                `Are you sure you want to ${action} this user?`,
+                'alert-triangle'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                await db.collection('users').doc(userId).update({
+                    isBlocked: !isBlocked
+                });
+                
+                showAlert('Success', `User ${action}ed successfully`);
+                loadUsers();
+                
+            } catch (error) {
+                console.error('Toggle block error:', error);
+                showAlert('Error', 'Failed to update user');
+            }
+        }
+        
+        async function loadWithdrawals() {
+            try {
+                const tbody = document.getElementById('withdrawals-table-body');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-8">
+                            <div class="loader mx-auto"></div>
+                            <p class="text-gray-500 mt-4">Loading withdrawals...</p>
+                        </td>
+                    </tr>
+                `;
+                
+                const filter = document.getElementById('withdrawal-filter').value;
+                let query = db.collection('withdrawals').orderBy('requestedAt', 'desc');
+                
+                if (filter !== 'all') {
+                    query = query.where('status', '==', filter);
+                }
+                
+                const snapshot = await query.limit(50).get();
+                
+                if (snapshot.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-gray-500">
+                                No withdrawal requests found
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const withdrawal = doc.data();
+                    const date = withdrawal.requestedAt?.toDate?.().toLocaleDateString() || 'Recently';
+                    const status = withdrawal.status;
+                    const id = doc.id.substring(0, 8);
+                    
+                    let statusBadge = '<span class="badge badge-warning">Pending</span>';
+                    if (status === 'approved') {
+                        statusBadge = '<span class="badge badge-success">Approved</span>';
+                    } else if (status === 'rejected') {
+                        statusBadge = '<span class="badge badge-danger">Rejected</span>';
+                    }
+                    
+                    let actions = '';
+                    if (status === 'pending') {
+                        actions = `
+                            <div class="flex space-x-2">
+                                <button onclick="approveWithdrawal('${doc.id}')" 
+                                        class="action-btn btn-success">
+                                    Approve
+                                </button>
+                                <button onclick="rejectWithdrawal('${doc.id}')" 
+                                        class="action-btn btn-danger">
+                                    Reject
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        actions = '<span class="text-gray-500 text-sm">Completed</span>';
+                    }
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="font-mono text-sm">${id}</td>
+                            <td>
+                                <p class="font-semibold">${withdrawal.userName || 'User'}</p>
+                                <p class="text-xs text-gray-600">${withdrawal.userTelegramId || 'N/A'}</p>
+                            </td>
+                            <td class="font-bold">${withdrawal.amount}</td>
+                            <td class="font-mono text-xs truncate max-w-xs">${withdrawal.paymentDetail || 'N/A'}</td>
+                            <td>${date}</td>
+                            <td>${statusBadge}</td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Load withdrawals error:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-8 text-red-500">
+                            Error loading withdrawals
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        async function approveWithdrawal(withdrawalId) {
+            const confirmed = await showConfirm(
+                'Approve Withdrawal',
+                'Are you sure you want to approve this withdrawal?',
+                'check-circle'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                await db.collection('withdrawals').doc(withdrawalId).update({
+                    status: 'approved',
+                    processedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    processedBy: currentAdmin.uid
+                });
+                
+                showAlert('Success', 'Withdrawal approved successfully');
+                loadWithdrawals();
+                loadDashboardData();
+                
+            } catch (error) {
+                console.error('Approve withdrawal error:', error);
+                showAlert('Error', 'Failed to approve withdrawal');
+            }
+        }
+        
+        async function rejectWithdrawal(withdrawalId) {
+            const confirmed = await showConfirm(
+                'Reject Withdrawal',
+                'Are you sure you want to reject this withdrawal?',
+                'x-circle'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const withdrawalDoc = await db.collection('withdrawals').doc(withdrawalId).get();
+                const withdrawalData = withdrawalDoc.data();
+                
+                // Refund coins to user
+                if (withdrawalData.userId) {
+                    await db.collection('users').doc(withdrawalData.userId).update({
+                        balance: firebase.firestore.FieldValue.increment(withdrawalData.amount)
+                    });
+                }
+                
+                // Update withdrawal status
+                await db.collection('withdrawals').doc(withdrawalId).update({
+                    status: 'rejected',
+                    processedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    processedBy: currentAdmin.uid
+                });
+                
+                showAlert('Success', 'Withdrawal rejected and coins refunded');
+                loadWithdrawals();
+                loadDashboardData();
+                
+            } catch (error) {
+                console.error('Reject withdrawal error:', error);
+                showAlert('Error', 'Failed to reject withdrawal');
+            }
+        }
+        
+        async function loadTasksAdmin() {
+            try {
+                const tasksDiv = document.getElementById('tasks-list-admin');
+                tasksDiv.innerHTML = '<div class="text-center py-8"><div class="loader mx-auto"></div><p class="text-gray-500 mt-4">Loading tasks...</p></div>';
+                
+                const snapshot = await db.collection('tasks')
+                    .where('active', '==', true)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                if (snapshot.empty) {
+                    tasksDiv.innerHTML = '<p class="text-gray-500 text-center">No active tasks</p>';
+                    return;
+                }
+                
+                tasksDiv.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const task = doc.data();
+                    const taskId = doc.id;
+                    
+                    tasksDiv.innerHTML += `
+                        <div class="p-4 border rounded-lg hover:bg-gray-50">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="text-2xl">${task.icon || '📢'}</span>
+                                        <div>
+                                            <h4 class="font-bold">${task.title}</h4>
+                                            <p class="text-sm text-gray-600">${task.description}</p>
+                                        </div>
+                                    </div>
+                                    ${task.link ? `
+                                        <div class="flex items-center space-x-2 text-sm text-blue-600">
+                                            <i data-lucide="link" class="w-4 h-4"></i>
+                                            <a href="${task.link}" target="_blank" class="hover:underline">
+                                                ${task.linkText || task.link}
+                                            </a>
+                                        </div>
+                                    ` : ''}
+                                    <div class="mt-2">
+                                        <span class="badge badge-info">+${task.reward} coins</span>
+                                        <span class="text-xs text-gray-500 ml-2">ID: ${taskId.substring(0, 8)}</span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="editTask('${taskId}')" 
+                                            class="action-btn btn-warning">
+                                        Edit
+                                    </button>
+                                    <button onclick="deleteTask('${taskId}')" 
+                                            class="action-btn btn-danger">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Load tasks error:', error);
+                document.getElementById('tasks-list-admin').innerHTML = '<p class="text-red-500 text-center">Error loading tasks</p>';
+            }
+        }
+        
+        async function createNewTask() {
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-description').value;
+            const reward = parseInt(document.getElementById('task-reward').value);
+            const link = document.getElementById('task-link').value;
+            const linkText = document.getElementById('task-link-text').value;
+            const icon = document.getElementById('task-icon').value;
+            
+            if (!title || !reward) {
+                showAlert('Error', 'Title and reward are required');
+                return;
+            }
+            
+            try {
+                await db.collection('tasks').add({
+                    title: title,
+                    description: description || '',
+                    reward: reward,
+                    link: link || null,
+                    linkText: linkText || 'Click to join',
+                    icon: icon || '📢',
+                    active: true,
+                    timesCompleted: 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Clear form
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-description').value = '';
+                document.getElementById('task-reward').value = '100';
+                document.getElementById('task-link').value = '';
+                document.getElementById('task-link-text').value = 'Click to join';
+                document.getElementById('task-icon').value = '📢';
+                
+                showAlert('Success', 'Task created successfully');
+                loadTasksAdmin();
+                
+            } catch (error) {
+                console.error('Create task error:', error);
+                showAlert('Error', 'Failed to create task');
+            }
+        }
+        
+        async function deleteTask(taskId) {
+            const confirmed = await showConfirm(
+                'Delete Task',
+                'Are you sure you want to delete this task?',
+                'trash-2'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                await db.collection('tasks').doc(taskId).delete();
+                showAlert('Success', 'Task deleted successfully');
+                loadTasksAdmin();
+                
+            } catch (error) {
+                console.error('Delete task error:', error);
+                showAlert('Error', 'Failed to delete task');
+            }
+        }
+        
+        async function loadGiftCodesAdmin() {
+            try {
+                const tbody = document.getElementById('giftcodes-table-body');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8">
+                            <div class="loader mx-auto"></div>
+                            <p class="text-gray-500 mt-4">Loading gift codes...</p>
+                        </td>
+                    </tr>
+                `;
+                
+                const snapshot = await db.collection('gift_codes')
+                    .orderBy('createdAt', 'desc')
+                    .limit(20)
+                    .get();
+                
+                if (snapshot.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-gray-500">
+                                No gift codes found
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const gift = doc.data();
+                    const expiry = gift.expiryDate ? new Date(gift.expiryDate).toLocaleDateString() : 'Never';
+                    const timesUsed = gift.timesUsed || 0;
+                    const usageLimit = gift.usageLimit || '∞';
+                    const isExpired = gift.expiryDate && new Date(gift.expiryDate) < new Date();
+                    const isActive = gift.active && !isExpired && (usageLimit === '∞' || timesUsed < usageLimit);
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="font-mono font-bold">${gift.code}</td>
+                            <td class="font-bold">${gift.coins}</td>
+                            <td>${timesUsed}/${usageLimit}</td>
+                            <td>${expiry}</td>
+                            <td>
+                                <span class="badge ${isActive ? 'badge-success' : 'badge-danger'}">
+                                    ${isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td>
+                                <button onclick="deactivateGiftCode('${doc.id}')" 
+                                        class="action-btn btn-danger">
+                                    Deactivate
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Load gift codes error:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-red-500">
+                            Error loading gift codes
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        async function generateGiftCode() {
+            const coins = parseInt(document.getElementById('gift-coins').value);
+            const usageLimit = parseInt(document.getElementById('gift-usage-limit').value) || 0;
+            const expiryDate = document.getElementById('gift-expiry').value;
+            
+            if (!coins || coins < 10) {
+                showAlert('Error', 'Please enter valid coin amount (min 10)');
+                return;
+            }
+            
+            // Generate random code
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            try {
+                // Check if code exists
+                const checkSnapshot = await db.collection('gift_codes')
+                    .where('code', '==', code)
+                    .get();
+                
+                if (!checkSnapshot.empty) {
+                    // Regenerate if exists
+                    return generateGiftCode();
+                }
+                
+                // Create gift code
+                await db.collection('gift_codes').add({
+                    code: code,
+                    coins: coins,
+                    usageLimit: usageLimit || null,
+                    expiryDate: expiryDate || null,
+                    active: true,
+                    timesUsed: 0,
+                    usedBy: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: currentAdmin.uid
+                });
+                
+                // Display generated code
+                const displayDiv = document.getElementById('generated-code-display');
+                displayDiv.innerHTML = `
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
+                            <i data-lucide="gift" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">Gift Code Generated!</p>
+                        <p class="text-3xl font-bold text-gray-900 mb-2">${code}</p>
+                        <p class="text-lg font-semibold text-green-600">${coins} Coins</p>
+                        <div class="mt-4 space-y-1">
+                            <p class="text-sm text-gray-600">Usage: ${usageLimit || 'Unlimited'}</p>
+                            <p class="text-sm text-gray-600">Expiry: ${expiryDate ? new Date(expiryDate).toLocaleDateString() : 'Never'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Clear form
+                document.getElementById('gift-coins').value = '500';
+                document.getElementById('gift-usage-limit').value = '0';
+                document.getElementById('gift-expiry').value = '';
+                
+                showAlert('Success', 'Gift code generated successfully');
+                loadGiftCodesAdmin();
+                
+            } catch (error) {
+                console.error('Generate gift code error:', error);
+                showAlert('Error', 'Failed to generate gift code');
+            }
+        }
+        
+        function copyGiftCode() {
+            const displayDiv = document.getElementById('generated-code-display');
+            const codeElement = displayDiv.querySelector('.text-3xl');
+            
+            if (codeElement) {
+                const code = codeElement.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    showAlert('Copied', 'Gift code copied to clipboard');
+                }).catch(() => {
+                    showAlert('Error', 'Failed to copy code');
+                });
+            }
+        }
+        
+        function shareGiftCodeAdmin() {
+            const displayDiv = document.getElementById('generated-code-display');
+            const codeElement = displayDiv.querySelector('.text-3xl');
+            const coinsElement = displayDiv.querySelector('.text-lg');
+            
+            if (codeElement && coinsElement) {
+                const code = codeElement.textContent;
+                const coins = coinsElement.textContent;
+                const text = `🎁 Gift Code Alert! 🎁\n\nUse code: ${code}\nTo claim: ${coins}\n\n@cashreward01bot`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'CashReward Gift Code',
+                        text: text
+                    });
+                } else {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showAlert('Copied', 'Gift code details copied to clipboard');
+                    });
+                }
+            }
+        }
+        
+        async function deactivateGiftCode(giftId) {
+            const confirmed = await showConfirm(
+                'Deactivate Gift Code',
+                'Are you sure you want to deactivate this gift code?',
+                'x-circle'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                await db.collection('gift_codes').doc(giftId).update({
+                    active: false
+                });
+                
+                showAlert('Success', 'Gift code deactivated');
+                loadGiftCodesAdmin();
+                
+            } catch (error) {
+                console.error('Deactivate gift code error:', error);
+                showAlert('Error', 'Failed to deactivate gift code');
+            }
+        }
+        
+        function refreshGiftCodes() {
+            loadGiftCodesAdmin();
+        }
+        
+        async function loadNotificationsAdmin() {
+            try {
+                const recentDiv = document.getElementById('recent-notifications');
+                recentDiv.innerHTML = '<div class="text-center py-8"><div class="loader mx-auto"></div><p class="text-gray-500 mt-4">Loading...</p></div>';
+                
+                const snapshot = await db.collection('notifications')
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                if (snapshot.empty) {
+                    recentDiv.innerHTML = '<p class="text-gray-500 text-center">No notifications sent</p>';
+                    return;
+                }
+                
+                recentDiv.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const notification = doc.data();
+                    const date = notification.createdAt?.toDate?.().toLocaleString() || 'Recently';
+                    
+                    recentDiv.innerHTML += `
+                        <div class="p-4 border-l-4 border-blue-500 bg-gray-50 rounded-r-lg">
+                            <h4 class="font-bold text-gray-900">${notification.title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-xs text-gray-500">${date}</span>
+                                <span class="text-xs text-gray-500">${notification.target || 'All users'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Load notifications error:', error);
+                document.getElementById('recent-notifications').innerHTML = '<p class="text-red-500 text-center">Error loading notifications</p>';
+            }
+        }
+        
+        async function sendNotificationToUsers() {
+            const title = document.getElementById('notification-title').value;
+            const message = document.getElementById('notification-message').value;
+            const target = document.getElementById('notification-target').value;
+            
+            if (!title || !message) {
+                showAlert('Error', 'Title and message are required');
+                return;
+            }
+            
+            try {
+                await db.collection('notifications').add({
+                    title: title,
+                    message: message,
+                    target: target,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    sentBy: currentAdmin.uid
+                });
+                
+                // Clear form
+                document.getElementById('notification-title').value = '';
+                document.getElementById('notification-message').value = '';
+                
+                showAlert('Success', 'Notification sent successfully');
+                loadNotificationsAdmin();
+                
+            } catch (error) {
+                console.error('Send notification error:', error);
+                showAlert('Error', 'Failed to send notification');
+            }
+        }
+        
+        async function loadSettingsAdmin() {
+            try {
+                const doc = await db.collection('config').doc('main').get();
+                
+                if (doc.exists) {
+                    appConfig = doc.data();
+                    
+                    // Set values
+                    document.getElementById('min-withdrawal').value = appConfig.minWithdrawal || 5000;
+                    document.getElementById('daily-ad-limit').value = appConfig.dailyAdLimit || 20;
+                    document.getElementById('min-referrals').value = appConfig.minReferralsForWithdrawal || 1;
+                    document.getElementById('referral-bonus').value = appConfig.referralBonus || 100;
+                    
+                    document.getElementById('coin-value-coins').value = appConfig.coinValueCoins || 1000;
+                    document.getElementById('coin-value-inr').value = appConfig.coinValueInr || 10;
+                    
+                    document.getElementById('starting-balance').value = appConfig.startingBalance || 100;
+                    document.getElementById('ad-reward-coins').value = appConfig.adCoins || 50;
+                    document.getElementById('special-ad-coins').value = appConfig.specialAdCoins || 100;
+                }
+                
+            } catch (error) {
+                console.error('Load settings error:', error);
+            }
+        }
+        
+        async function saveSettings() {
+            try {
+                const config = {
+                    minWithdrawal: parseInt(document.getElementById('min-withdrawal').value) || 5000,
+                    dailyAdLimit: parseInt(document.getElementById('daily-ad-limit').value) || 20,
+                    minReferralsForWithdrawal: parseInt(document.getElementById('min-referrals').value) || 1,
+                    referralBonus: parseInt(document.getElementById('referral-bonus').value) || 100,
+                    coinValueCoins: parseInt(document.getElementById('coin-value-coins').value) || 1000,
+                    coinValueInr: parseInt(document.getElementById('coin-value-inr').value) || 10,
+                    startingBalance: parseInt(document.getElementById('starting-balance').value) || 100,
+                    adCoins: parseInt(document.getElementById('ad-reward-coins').value) || 50,
+                    specialAdCoins: parseInt(document.getElementById('special-ad-coins').value) || 100,
+                    paymentMethods: ['USDT (Polygon)'],
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection('config').doc('main').set(config, { merge: true });
+                appConfig = config;
+                
+                showAlert('Success', 'Settings saved successfully');
+                
+            } catch (error) {
+                console.error('Save settings error:', error);
+                showAlert('Error', 'Failed to save settings');
+            }
+        }
+        
+        function exportWithdrawalsCSV() {
+            // This is a simplified CSV export
+            showAlert('Info', 'CSV export feature would be implemented here');
+        }
+        
+        // Modal functions
+        function showAlert(title, message) {
+            document.getElementById('alert-title').textContent = title;
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+        
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+        
+        function showConfirm(title, message, icon = 'alert-circle') {
+            return new Promise((resolve) => {
+                document.getElementById('confirm-title').textContent = title;
+                document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-icon').innerHTML = `<i data-lucide="${icon}" class="w-8 h-8"></i>`;
+                lucide.createIcons();
+                
+                document.getElementById('confirm-modal').classList.remove('hidden');
+                
+                window.confirmOk = () => {
+                    document.getElementById('confirm-modal').classList.add('hidden');
+                    resolve(true);
+                };
+                
+                window.confirmCancel = () => {
+                    document.getElementById('confirm-modal').classList.add('hidden');
+                    resolve(false);
+                };
+            });
+        }
+        
+        // Window exports
+        window.toggleBlockUser = toggleBlockUser;
+        window.approveWithdrawal = approveWithdrawal;
+        window.rejectWithdrawal = rejectWithdrawal;
+        window.deleteTask = deleteTask;
+        window.deactivateGiftCode = deactivateGiftCode;
+        window.refreshGiftCodes = refreshGiftCodes;
+        window.navigateTo = navigateTo;
+        window.showCreateTaskModal = () => {}; // Implement if needed
+        window.showGenerateGiftCodeModal = () => {}; // Implement if needed
+        window.viewUserDetails = (userId) => {
+            showAlert('User Details', `View details for user: ${userId}`);
+        };
+        window.editTask = (taskId) => {
+            showAlert('Edit Task', `Edit task: ${taskId}`);
+        };
+        
+    </script>
+</body>
+</html>
